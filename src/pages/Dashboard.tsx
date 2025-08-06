@@ -150,8 +150,23 @@ const Dashboard = () => {
     }
   };
 
+  // Sort operations by most recent modification date
+  const sortedOperations = [...operations].sort((a, b) => {
+    const getLatestModifDate = (op: Operation) => {
+      if (!op.simulations || op.simulations.length === 0) return new Date(0);
+      const dates = op.simulations
+        .map(sim => sim.datemodif ? new Date(sim.datemodif) : new Date(0))
+        .sort((d1, d2) => d2.getTime() - d1.getTime());
+      return dates[0];
+    };
+    
+    const dateA = getLatestModifDate(a);
+    const dateB = getLatestModifDate(b);
+    return dateB.getTime() - dateA.getTime();
+  });
+
   // Group operations by label
-  const groupedOperations: { [key: string]: Operation[] } = operations.reduce(
+  const groupedOperations: { [key: string]: Operation[] } = sortedOperations.reduce(
     (groups, operation) => {
       const label = operation.libelleoperation;
       if (!groups[label]) {
@@ -321,20 +336,6 @@ const Dashboard = () => {
 
         {/* Operations data */}
         <div className="space-y-8">
-          {/* Loading progress indicator */}
-          {loading && (
-            <div className="flex items-center justify-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-600"></div>
-              <div className="text-sm">
-                <p className="text-blue-700 font-medium">{loadingMessage}</p>
-                {loadingProgress > 0 && (
-                  <p className="text-blue-600 text-xs">
-                    {loadingProgress} éléments traités
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Display operations progressively */}
           {operations.length === 0 && !loading ? (
