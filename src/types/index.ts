@@ -10,11 +10,17 @@ export interface User {
 export interface Operation {
   id: string;
   libelleoperation: string;
+  simulations: Simulation[];
+  details?: OperationDetails;
+}
+
+export interface Simulation {
+  id: string;
+  name: string;
   commune: string;
   annee: number;
   departement?: string;
   status?: string;
-  details?: OperationDetails;
 }
 
 export interface OperationDetails {

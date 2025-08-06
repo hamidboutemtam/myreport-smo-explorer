@@ -34,47 +34,65 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
   // Simulating API call delay
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // Sample data
+  // Sample data with multiple simulations
   const mockOperations: Operation[] = [
     {
       id: '1',
       libelleoperation: 'Résidence Les Oliviers',
-      commune: 'Marseille',
-      annee: 2023,
-      departement: '13',
-      status: 'En cours'
+      simulations: [
+        {
+          id: 'sim-1-1',
+          name: 'Simulation Base',
+          commune: 'Marseille',
+          annee: 2023,
+          departement: '13',
+          status: 'En cours'
+        },
+        {
+          id: 'sim-1-2',
+          name: 'Simulation Optimisée',
+          commune: 'Aix-en-Provence',
+          annee: 2024,
+          departement: '13',
+          status: 'Planifié'
+        }
+      ]
     },
     {
       id: '2',
       libelleoperation: 'Parc Saint-Michel',
-      commune: 'Lyon',
-      annee: 2022,
-      departement: '69',
-      status: 'Terminé'
+      simulations: [
+        {
+          id: 'sim-2-1',
+          name: 'Scenario Standard',
+          commune: 'Lyon',
+          annee: 2022,
+          departement: '69',
+          status: 'Terminé'
+        },
+        {
+          id: 'sim-2-2',
+          name: 'Scenario Alternatif',
+          commune: 'Villeurbanne',
+          annee: 2023,
+          departement: '69',
+          status: 'En cours'
+        }
+      ]
     },
     {
       id: '3',
       libelleoperation: 'Les Terrasses du Port',
-      commune: 'Marseille',
-      annee: 2023,
-      departement: '13',
-      status: 'Planifié'
-    },
-    {
-      id: '4',
-      libelleoperation: 'Cité Universitaire',
-      commune: 'Paris',
-      annee: 2021,
-      departement: '75',
-      status: 'Terminé'
-    },
-    {
-      id: '5',
-      libelleoperation: 'Eco-Quartier Nord',
-      commune: 'Lyon',
-      annee: 2022,
-      departement: '69',
-      status: 'En cours'
+      simulations: [
+        {
+          id: 'sim-3-1',
+          name: 'Version 1',
+          commune: 'Marseille',
+          annee: 2023,
+          departement: '13',
+          status: 'Planifié'
+        }
+      ]
     }
   ];
 
@@ -86,16 +104,18 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
         match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
       }
       if (filters.commune) {
-        match = match && op.commune.toLowerCase().includes(filters.commune.toLowerCase());
+        match = match && op.simulations.some(sim => 
+          sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
+        );
       }
       if (filters.annee) {
-        match = match && op.annee === filters.annee;
+        match = match && op.simulations.some(sim => sim.annee === filters.annee);
       }
       if (filters.departement) {
-        match = match && op.departement === filters.departement;
+        match = match && op.simulations.some(sim => sim.departement === filters.departement);
       }
       if (filters.status) {
-        match = match && op.status === filters.status;
+        match = match && op.simulations.some(sim => sim.status === filters.status);
       }
       return match;
     });
@@ -110,13 +130,19 @@ export const getOperationDetails = async (operationId: string): Promise<Operatio
   await new Promise(resolve => setTimeout(resolve, 800));
   
   // Sample detailed data
-  const mockDetails = {
+  const mockDetails: Operation = {
     id: operationId,
     libelleoperation: 'Résidence Les Oliviers',
-    commune: 'Marseille',
-    annee: 2023,
-    departement: '13',
-    status: 'En cours',
+    simulations: [
+      {
+        id: 'sim-detail-1',
+        name: 'Simulation Détaillée',
+        commune: 'Marseille',
+        annee: 2023,
+        departement: '13',
+        status: 'En cours'
+      }
+    ],
     details: {
       typologielogement: [
         { id: 't1', type: 'T2', surface: 45, quantite: 10, prixunitaire: 120000 },

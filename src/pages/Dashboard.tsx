@@ -39,6 +39,7 @@ const Dashboard = () => {
   const [filters, setFilters] = useState<OperationFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [selectedSimulations, setSelectedSimulations] = useState<{ [operationId: string]: string }>({});
   
   const navigate = useNavigate();
 
@@ -121,7 +122,21 @@ const Dashboard = () => {
   );
 
   // Get unique communes for filter
-  const communes = [...new Set(operations.map(op => op.commune))];
+  const communes = [...new Set(operations.flatMap(op => op.simulations.map(sim => sim.commune)))];
+
+  // Handle simulation selection
+  const handleSimulationChange = (operationId: string, simulationId: string) => {
+    setSelectedSimulations(prev => ({ ...prev, [operationId]: simulationId }));
+  };
+
+  // Get selected simulation for an operation
+  const getSelectedSimulation = (operation: Operation) => {
+    const selectedId = selectedSimulations[operation.id];
+    if (selectedId) {
+      return operation.simulations.find(sim => sim.id === selectedId);
+    }
+    return operation.simulations[0]; // Default to first simulation
+  };
 
   return (
     <Layout>
@@ -265,7 +280,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-8">
+                <div className="space-y-8">
                 {Object.entries(groupedOperations).map(([label, operations]) => (
                   <Card key={label} className="data-card overflow-hidden">
                     <CardHeader className="bg-gray-50">
@@ -279,6 +294,7 @@ const Dashboard = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
+                              <TableHead>Simulation</TableHead>
                               <TableHead>Commune</TableHead>
                               <TableHead>Année</TableHead>
                               <TableHead>Département</TableHead>
@@ -287,51 +303,71 @@ const Dashboard = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {operations.map((operation) => (
-                              <TableRow key={operation.id}>
-                                <TableCell>{operation.commune}</TableCell>
-                                <TableCell>{operation.annee}</TableCell>
-                                <TableCell>{operation.departement || '-'}</TableCell>
-                                <TableCell>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={
-                                      operation.status === 'En cours' 
-                                        ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                                        : operation.status === 'Terminé' 
-                                        ? 'bg-green-50 text-green-700 border-green-200'
-                                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                                    }
-                                  >
-                                    {operation.status || 'N/A'}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleExport(operation.id, 'json')}
-                                      disabled={exportLoading}
-                                      className="h-8 px-2"
+                            {operations.map((operation) => {
+                              const selectedSimulation = getSelectedSimulation(operation);
+                              return (
+                                <TableRow key={operation.id}>
+                                  <TableCell>
+                                    <Select
+                                      value={selectedSimulations[operation.id] || operation.simulations[0]?.id || ''}
+                                      onValueChange={(value) => handleSimulationChange(operation.id, value)}
                                     >
-                                      <FileJson className="h-4 w-4 mr-1" />
-                                      <span>JSON</span>
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleExport(operation.id, 'excel')}
-                                      disabled={exportLoading}
-                                      className="h-8 px-2"
+                                      <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Sélectionner une simulation" />
+                                      </SelectTrigger>
+                                      <SelectContent className="z-50 bg-popover border border-border shadow-md">
+                                        {operation.simulations.map((simulation) => (
+                                          <SelectItem key={simulation.id} value={simulation.id}>
+                                            {simulation.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell>{selectedSimulation?.commune || '-'}</TableCell>
+                                  <TableCell>{selectedSimulation?.annee || '-'}</TableCell>
+                                  <TableCell>{selectedSimulation?.departement || '-'}</TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={
+                                        selectedSimulation?.status === 'En cours' 
+                                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                          : selectedSimulation?.status === 'Terminé' 
+                                          ? 'bg-green-50 text-green-700 border-green-200'
+                                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                                      }
                                     >
-                                      <FileSpreadsheet className="h-4 w-4 mr-1" />
-                                      <span>Excel</span>
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                                      {selectedSimulation?.status || 'N/A'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleExport(operation.id, 'json')}
+                                        disabled={exportLoading}
+                                        className="h-8 px-2"
+                                      >
+                                        <FileJson className="h-4 w-4 mr-1" />
+                                        <span>JSON</span>
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleExport(operation.id, 'excel')}
+                                        disabled={exportLoading}
+                                        className="h-8 px-2"
+                                      >
+                                        <FileSpreadsheet className="h-4 w-4 mr-1" />
+                                        <span>Excel</span>
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       </div>
