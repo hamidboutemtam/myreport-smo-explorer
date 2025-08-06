@@ -123,7 +123,6 @@ const OperationDetail = () => {
                 prixRevientData={prixRevientData}
                 totals={totals}
                 loading={loading}
-                onChapterSelect={handleChapterSelect}
               />
             </TabsContent>
 
