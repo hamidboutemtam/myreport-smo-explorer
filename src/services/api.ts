@@ -94,8 +94,11 @@ const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
   });
 };
 
-// Helper function to fetch all paginated data
-const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
+// Helper function to fetch all paginated data with progressive callback
+const fetchAllPages = async (
+  url: string, 
+  onProgressUpdate?: (data: ApiOperationData[], isComplete: boolean) => void
+): Promise<ApiOperationData[]> => {
   let allData: ApiOperationData[] = [];
   let currentUrl = url;
   let pageCount = 1;
@@ -119,6 +122,12 @@ const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
     const pageData: ApiOperationData[] = apiResponse.value || [];
     
     allData = allData.concat(pageData);
+    
+    // Call progress callback with current data
+    if (onProgressUpdate) {
+      const isComplete = !apiResponse['@odata.nextLink'];
+      onProgressUpdate(allData, isComplete);
+    }
     
     // Check for next page
     if (apiResponse['@odata.nextLink']) {
@@ -232,6 +241,94 @@ export const getOperations = async (filters?: OperationFilters, forceRefresh: bo
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
+    throw new Error('Erreur lors de la récupération des données');
+  }
+};
+
+// Get operations progressively (for real-time updates)
+export const getOperationsProgressive = async (
+  filters?: OperationFilters,
+  onProgressUpdate?: (operations: Operation[], isComplete: boolean, loadedCount: number, totalEstimate?: number) => void
+): Promise<Operation[]> => {
+  console.log('🔍 Getting operations progressively with filters:', filters);
+  
+  try {
+    console.log('📡 Starting progressive data fetch...');
+    
+    const allApiData = await fetchAllPages(API_BASE_URL, (apiData, isComplete) => {
+      // Transform current data
+      const currentOperations = transformApiData(apiData);
+      
+      // Apply filters if provided
+      let filteredOperations = currentOperations;
+      if (filters && Object.keys(filters).length > 0) {
+        filteredOperations = currentOperations.filter(op => {
+          let match = true;
+          if (filters.libelleoperation) {
+            match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
+          }
+          if (filters.commune) {
+            match = match && op.simulations.some(sim => 
+              sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
+            );
+          }
+          if (filters.annee) {
+            match = match && op.simulations.some(sim => sim.annee === filters.annee);
+          }
+          if (filters.departement) {
+            match = match && op.simulations.some(sim => sim.departement === filters.departement);
+          }
+          if (filters.status) {
+            match = match && op.simulations.some(sim => sim.status === filters.status);
+          }
+          return match;
+        });
+      }
+      
+      // Call progress callback
+      if (onProgressUpdate) {
+        onProgressUpdate(filteredOperations, isComplete, apiData.length);
+      }
+    });
+    
+    // Final transformation
+    const finalOperations = transformApiData(allApiData);
+    
+    // Update cache
+    operationsCache = finalOperations;
+    cacheTimestamp = Date.now();
+    console.log('💾 Data cached successfully');
+    
+    // Apply final filters
+    let operations = finalOperations;
+    if (filters && Object.keys(filters).length > 0) {
+      operations = finalOperations.filter(op => {
+        let match = true;
+        if (filters.libelleoperation) {
+          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
+        }
+        if (filters.commune) {
+          match = match && op.simulations.some(sim => 
+            sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
+          );
+        }
+        if (filters.annee) {
+          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        }
+        if (filters.departement) {
+          match = match && op.simulations.some(sim => sim.departement === filters.departement);
+        }
+        if (filters.status) {
+          match = match && op.simulations.some(sim => sim.status === filters.status);
+        }
+        return match;
+      });
+    }
+
+    console.log('🎯 Returning final filtered operations:', operations.length);
+    return operations;
+  } catch (error) {
+    console.error('💥 Error fetching operations progressively:', error);
     throw new Error('Erreur lors de la récupération des données');
   }
 };

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Filter, X, FileJson, FileSpreadsheet, RefreshCw } from 'lucide-react';
-import { getOperations, exportOperation, downloadFile } from '@/services/api';
+import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
 
@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Chargement des données...');
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [filters, setFilters] = useState<OperationFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -49,18 +50,54 @@ const Dashboard = () => {
 
   // Fetch operations on initial load
   useEffect(() => {
-    fetchOperations();
+    fetchOperationsProgressive();
   }, []);
 
-  // Fetch operations with optional filters
-  const fetchOperations = async (useCache: boolean = true) => {
+  // Fetch operations progressively
+  const fetchOperationsProgressive = async () => {
     setLoading(true);
-    setLoadingMessage(useCache ? 'Vérification du cache...' : 'Récupération des données...');
+    setLoadingProgress(0);
+    setOperations([]); // Clear existing data
+    setLoadingMessage('Début du chargement...');
+    
+    try {
+      await getOperationsProgressive(
+        filters,
+        (progressOperations, isComplete, loadedCount) => {
+          setOperations([...progressOperations]); // Spread to force re-render
+          setLoadingProgress(loadedCount);
+          
+          if (isComplete) {
+            setLoadingMessage(`Chargement terminé - ${progressOperations.length} opérations trouvées`);
+            setLoading(false);
+          } else {
+            setLoadingMessage(`Chargement en cours... ${loadedCount} éléments traités`);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error fetching operations:', error);
+      toast.error('Erreur lors du chargement des opérations');
+      setLoadingMessage('Erreur de chargement');
+      setLoading(false);
+    }
+  };
+
+  // Fetch operations with cache (for filters)
+  const fetchOperations = async (useCache: boolean = true) => {
+    if (!useCache) {
+      // Force progressive reload
+      fetchOperationsProgressive();
+      return;
+    }
+    
+    setLoading(true);
+    setLoadingMessage('Application des filtres...');
     
     try {
       const data = await getOperations(filters, !useCache);
       setOperations(data);
-      setLoadingMessage('Données chargées avec succès');
+      setLoadingMessage('Filtres appliqués');
     } catch (error) {
       console.error('Error fetching operations:', error);
       toast.error('Erreur lors du chargement des opérations');
@@ -283,118 +320,130 @@ const Dashboard = () => {
         )}
 
         {/* Operations data */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-smo-primary mb-4"></div>
-            <p className="text-gray-600 text-center">{loadingMessage}</p>
-          </div>
-        ) : (
-          <>
-            {operations.length === 0 ? (
-              <Card className="bg-gray-50 border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-gray-500 mb-4">Aucune opération ne correspond aux critères de recherche</p>
-                  <Button variant="outline" onClick={resetFilters}>
-                    Réinitialiser les filtres
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-                <div className="space-y-8">
-                {Object.entries(groupedOperations).map(([label, operations]) => (
-                  <Card key={label} className="data-card overflow-hidden">
-                    <CardHeader className="bg-gray-50">
-                      <CardTitle className="text-lg">{label}</CardTitle>
-                      <CardDescription>
-                        {operations.length} opération{operations.length !== 1 ? 's' : ''}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Simulation</TableHead>
-                              <TableHead>Adresse</TableHead>
-                              <TableHead>Commune</TableHead>
-                              <TableHead>Département</TableHead>
-                              <TableHead>Date Valeur</TableHead>
-                              <TableHead>Date Modif</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {operations.map((operation) => {
-                              const selectedSimulation = getSelectedSimulation(operation);
-                              return (
-                                <TableRow key={operation.id}>
-                                  <TableCell>
-                                    <Select
-                                      value={selectedSimulations[operation.id] || (operation.simulations || [])[0]?.id || ''}
-                                      onValueChange={(value) => handleSimulationChange(operation.id, value)}
+        <div className="space-y-8">
+          {/* Loading progress indicator */}
+          {loading && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-blue-700 text-center font-medium">{loadingMessage}</p>
+                {loadingProgress > 0 && (
+                  <p className="text-blue-600 text-sm mt-2">
+                    {loadingProgress} éléments traités
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Display operations progressively */}
+          {operations.length === 0 && !loading ? (
+            <Card className="bg-gray-50 border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-gray-500 mb-4">Aucune opération ne correspond aux critères de recherche</p>
+                <Button variant="outline" onClick={resetFilters}>
+                  Réinitialiser les filtres
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {Object.entries(groupedOperations).map(([label, operations]) => (
+                <Card key={label} className="data-card overflow-hidden">
+                  <CardHeader className="bg-gray-50">
+                    <CardTitle className="text-lg">{label}</CardTitle>
+                    <CardDescription>
+                      {operations.length} opération{operations.length !== 1 ? 's' : ''}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Simulation</TableHead>
+                            <TableHead>Adresse</TableHead>
+                            <TableHead>Commune</TableHead>
+                            <TableHead>Département</TableHead>
+                            <TableHead>Date Valeur</TableHead>
+                            <TableHead>Date Modif</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {operations.map((operation) => {
+                            const selectedSimulation = getSelectedSimulation(operation);
+                            return (
+                              <TableRow 
+                                key={operation.id}
+                                className="animate-in fade-in-0 duration-300"
+                              >
+                                <TableCell>
+                                  <Select
+                                    value={selectedSimulations[operation.id] || (operation.simulations || [])[0]?.id || ''}
+                                    onValueChange={(value) => handleSimulationChange(operation.id, value)}
+                                  >
+                                    <SelectTrigger className="w-48">
+                                      <SelectValue placeholder="Sélectionner une simulation" />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-50 bg-popover border border-border shadow-md">
+                                      {(operation.simulations || []).map((simulation) => (
+                                        <SelectItem key={simulation.id} value={simulation.id}>
+                                          {simulation.name}
+                                        </SelectItem>
+                                      ))}
+                                     </SelectContent>
+                                   </Select>
+                                 </TableCell>
+                                 <TableCell className="max-w-xs truncate" title={operation.adresseoperation}>
+                                   {operation.adresseoperation || '-'}
+                                 </TableCell>
+                                 <TableCell>{operation.commune || '-'}</TableCell>
+                                 <TableCell>{operation.departement || '-'}</TableCell>
+                                 <TableCell>
+                                   {selectedSimulation?.datevaleur ? 
+                                     new Date(selectedSimulation.datevaleur).toLocaleDateString('fr-FR') : '-'}
+                                 </TableCell>
+                                 <TableCell>
+                                   {selectedSimulation?.datemodif ? 
+                                     new Date(selectedSimulation.datemodif).toLocaleDateString('fr-FR') : '-'}
+                                 </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleExport(operation.id, 'json')}
+                                      disabled={exportLoading}
+                                      className="h-8 px-2"
                                     >
-                                      <SelectTrigger className="w-48">
-                                        <SelectValue placeholder="Sélectionner une simulation" />
-                                      </SelectTrigger>
-                                      <SelectContent className="z-50 bg-popover border border-border shadow-md">
-                                        {(operation.simulations || []).map((simulation) => (
-                                          <SelectItem key={simulation.id} value={simulation.id}>
-                                            {simulation.name}
-                                          </SelectItem>
-                                        ))}
-                                       </SelectContent>
-                                     </Select>
-                                   </TableCell>
-                                   <TableCell className="max-w-xs truncate" title={operation.adresseoperation}>
-                                     {operation.adresseoperation || '-'}
-                                   </TableCell>
-                                   <TableCell>{operation.commune || '-'}</TableCell>
-                                   <TableCell>{operation.departement || '-'}</TableCell>
-                                   <TableCell>
-                                     {selectedSimulation?.datevaleur ? 
-                                       new Date(selectedSimulation.datevaleur).toLocaleDateString('fr-FR') : '-'}
-                                   </TableCell>
-                                   <TableCell>
-                                     {selectedSimulation?.datemodif ? 
-                                       new Date(selectedSimulation.datemodif).toLocaleDateString('fr-FR') : '-'}
-                                   </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleExport(operation.id, 'json')}
-                                        disabled={exportLoading}
-                                        className="h-8 px-2"
-                                      >
-                                        <FileJson className="h-4 w-4 mr-1" />
-                                        <span>JSON</span>
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleExport(operation.id, 'excel')}
-                                        disabled={exportLoading}
-                                        className="h-8 px-2"
-                                      >
-                                        <FileSpreadsheet className="h-4 w-4 mr-1" />
-                                        <span>Excel</span>
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+                                      <FileJson className="h-4 w-4 mr-1" />
+                                      <span>JSON</span>
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleExport(operation.id, 'excel')}
+                                      disabled={exportLoading}
+                                      className="h-8 px-2"
+                                    >
+                                      <FileSpreadsheet className="h-4 w-4 mr-1" />
+                                      <span>Excel</span>
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          )}
+        </div>
       </div>
     </Layout>
   );
