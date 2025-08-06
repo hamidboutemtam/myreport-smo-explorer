@@ -73,34 +73,39 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // Tester d'abord sans filtre de simulation pour voir si les données existent
-      console.log('Testing data availability...');
-      const testUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}'`;
-      console.log('Test URL (without simulation filter):', testUrl);
+      // Essayer différentes approches URL
+      const urls = [
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet%20eq%20'${operationId}'%20and%20Code_Simulation%20eq%20'${encodeURIComponent(selectedSimulation)}'`
+      ];
       
-      const testResponse = await fetch(testUrl, { headers: getAuthHeader() });
-      const testData = await testResponse.json();
-      console.log('Available simulations in typology data:', testData.value?.map(item => item.Code_Simulation) || []);
-      
-      // Maintenant essayer avec la simulation spécifique en utilisant URLSearchParams
-      const params = new URLSearchParams();
-      params.append('$filter', `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`);
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?${params.toString()}`;
-      
-      console.log('Final URL with URLSearchParams:', url);
-      const response = await fetch(url, { headers: getAuthHeader() });
-      
-      if (!response.ok) {
-        console.error('Typology fetch failed:', response.status, response.statusText);
-        throw new Error('Failed to fetch typology data');
+      let success = false;
+      for (const url of urls) {
+        try {
+          console.log('Trying URL:', url);
+          const response = await fetch(url, { headers: getAuthHeader() });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Typology data received:', data);
+            setTypologyData(data.value || []);
+            success = true;
+            break;
+          } else {
+            console.log('URL failed with status:', response.status);
+          }
+        } catch (urlError) {
+          console.log('URL error:', urlError);
+        }
       }
       
-      const data = await response.json();
-      console.log('Typology data received:', data);
-      setTypologyData(data.value || []);
+      if (!success) {
+        console.warn('No typology data found for this simulation');
+        setTypologyData([]);
+      }
     } catch (error) {
       console.error('Error fetching typology data:', error);
-      toast.error('Erreur lors du chargement des données de typologie');
+      setTypologyData([]);
     }
   };
 
@@ -110,39 +115,47 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
       
-      // Tester d'abord sans filtre de simulation pour voir si les données existent
-      console.log('Testing data availability...');
-      const testUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}'`;
-      console.log('Test URL (without simulation filter):', testUrl);
+      // Essayer différentes approches URL
+      const urls = [
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet%20eq%20'${operationId}'%20and%20Code_Simulation%20eq%20'${encodeURIComponent(selectedSimulation)}'`
+      ];
       
-      const testResponse = await fetch(testUrl, { headers: getAuthHeader() });
-      const testData = await testResponse.json();
-      console.log('Available simulations in prix de revient data:', testData.value?.map(item => item.Code_Simulation) || []);
-      
-      // Maintenant essayer avec la simulation spécifique en utilisant URLSearchParams
-      const params = new URLSearchParams();
-      params.append('$filter', `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`);
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?${params.toString()}`;
-      
-      console.log('Final URL with URLSearchParams:', url);
-      const response = await fetch(url, { headers: getAuthHeader() });
-      
-      if (!response.ok) {
-        console.error('Prix de revient fetch failed:', response.status, response.statusText);
-        throw new Error('Failed to fetch prix de revient data');
+      let success = false;
+      for (const url of urls) {
+        try {
+          console.log('Trying URL:', url);
+          const response = await fetch(url, { headers: getAuthHeader() });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Prix de revient data received:', data);
+            setPrixRevientData(data.value || []);
+            success = true;
+            break;
+          } else {
+            console.log('URL failed with status:', response.status);
+          }
+        } catch (urlError) {
+          console.log('URL error:', urlError);
+        }
       }
       
-      const data = await response.json();
-      console.log('Prix de revient data received:', data);
-      setPrixRevientData(data.value || []);
+      if (!success) {
+        console.warn('No prix de revient data found for this simulation');
+        setPrixRevientData([]);
+      }
     } catch (error) {
       console.error('Error fetching prix de revient data:', error);
-      toast.error('Erreur lors du chargement des données de prix de revient');
+      setPrixRevientData([]);
     }
   };
 
   const refreshData = async () => {
-    if (!selectedSimulation) return;
+    if (!selectedSimulation) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     try {
@@ -159,16 +172,13 @@ export const useOperationData = (operationId: string | undefined) => {
 
   useEffect(() => {
     if (operationId) {
+      setLoading(true);
       fetchSimulations();
     }
   }, [operationId]);
 
   useEffect(() => {
-    if (selectedSimulation) {
-      refreshData();
-    } else {
-      setLoading(false); // Stop loading if no simulation selected
-    }
+    refreshData();
   }, [selectedSimulation]);
 
   return {
