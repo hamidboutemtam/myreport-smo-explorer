@@ -16,8 +16,42 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
   totals,
   loading
 }) => {
-  if (loading || typologyData.length === 0) {
-    return null;
+  if (loading) {
+    return (
+      <Card className="border-0 bg-card/60 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base flex items-center gap-2 text-foreground">
+            <Home className="w-4 h-4" />
+            Composition du programme locatif
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Chargement des données de typologie...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!typologyData || typologyData.length === 0) {
+    return (
+      <Card className="border-0 bg-card/60 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base flex items-center gap-2 text-foreground">
+            <Home className="w-4 h-4" />
+            Composition du programme locatif
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Home className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Aucune donnée de typologie disponible pour cette simulation.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

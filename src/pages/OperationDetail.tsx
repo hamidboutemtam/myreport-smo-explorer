@@ -91,7 +91,7 @@ const OperationDetail = () => {
           loading={loading}
         />
 
-        {selectedSimulation && !loading && (
+        {selectedSimulation && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 h-10">
               <TabsTrigger value="logements" className="text-sm">

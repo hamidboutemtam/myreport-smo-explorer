@@ -72,15 +72,16 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
-      // Construire l'URL avec les paramètres correctement encodés pour OData
-      const filterQuery = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const encodedFilter = encodeURIComponent(filterQuery);
+      // Utiliser la même approche que dans l'original qui fonctionnait
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=${encodedFilter}`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
         { headers: getAuthHeader() }
       );
       
-      if (!response.ok) throw new Error('Failed to fetch typology data');
+      if (!response.ok) {
+        console.error('Typology fetch failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch typology data');
+      }
       
       const data = await response.json();
       console.log('Typology data received:', data);
@@ -96,15 +97,16 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
-      // Construire l'URL avec les paramètres correctement encodés pour OData
-      const filterQuery = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const encodedFilter = encodeURIComponent(filterQuery);
+      // Utiliser la même approche que dans l'original qui fonctionnait
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=${encodedFilter}`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
         { headers: getAuthHeader() }
       );
       
-      if (!response.ok) throw new Error('Failed to fetch prix de revient data');
+      if (!response.ok) {
+        console.error('Prix de revient fetch failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch prix de revient data');
+      }
       
       const data = await response.json();
       console.log('Prix de revient data received:', data);
@@ -116,21 +118,32 @@ export const useOperationData = (operationId: string | undefined) => {
   };
 
   const refreshData = async () => {
+    if (!selectedSimulation) return;
+    
     setLoading(true);
-    await Promise.all([
-      fetchTypologyData(),
-      fetchPrixRevientData()
-    ]);
-    setLoading(false);
+    try {
+      await Promise.all([
+        fetchTypologyData(),
+        fetchPrixRevientData()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchSimulations();
+    if (operationId) {
+      fetchSimulations();
+    }
   }, [operationId]);
 
   useEffect(() => {
     if (selectedSimulation) {
       refreshData();
+    } else {
+      setLoading(false); // Stop loading if no simulation selected
     }
   }, [selectedSimulation]);
 
