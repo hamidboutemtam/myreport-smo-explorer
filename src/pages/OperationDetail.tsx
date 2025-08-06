@@ -201,8 +201,14 @@ const OperationDetail = () => {
   };
 
   const handleCardClick = (tabName: string) => {
-    setActiveTab(tabName);
-    setShowDetails(true);
+    if (showDetails && activeTab === tabName) {
+      // Si on clique sur l'étiquette active, on masque les détails
+      setShowDetails(false);
+    } else {
+      // Sinon on affiche les détails avec le bon onglet
+      setActiveTab(tabName);
+      setShowDetails(true);
+    }
   };
 
   const getSelectedSimulationDetails = () => {
