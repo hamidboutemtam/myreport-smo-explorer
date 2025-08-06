@@ -328,59 +328,56 @@ const OperationDetail = () => {
 
             {/* Détails de la simulation sélectionnée */}
             {selectedSimulation && getSelectedSimulationDetails() && (
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 animate-fade-in">
-                <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  Détails de la simulation
-                </h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 animate-fade-in">
+                <div className="flex flex-wrap items-center gap-4 text-sm">
                   {/* Date de valeur */}
-                  <div className="bg-white rounded-md p-3 border border-slate-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Calendar className="w-4 h-4 text-blue-500" />
-                      <span className="text-xs font-medium text-slate-600">Date de valeur</span>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-500" />
+                    <span className="text-slate-600">Valeur:</span>
+                    <span className="font-medium text-slate-800">
                       {getSelectedSimulationDetails()?.DateValeur ? 
                         new Date(getSelectedSimulationDetails()!.DateValeur!).toLocaleDateString('fr-FR') : 
-                        'Non renseignée'
+                        'N/A'
                       }
-                    </p>
+                    </span>
                   </div>
 
+                  <div className="h-4 w-px bg-slate-300"></div>
+
                   {/* Étape */}
-                  <div className="bg-white rounded-md p-3 border border-slate-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs font-medium text-slate-600">Étape</span>
-                    </div>
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getEtapeColor(getSelectedSimulationDetails()?.Etape)}`}>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-500" />
+                    <span className="text-slate-600">Étape:</span>
+                    <div className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getEtapeColor(getSelectedSimulationDetails()?.Etape)}`}>
                       {getSelectedSimulationDetails()?.Etape || 'Non définie'}
                     </div>
                   </div>
 
-                  {/* Dernier utilisateur */}
-                  <div className="bg-white rounded-md p-3 border border-slate-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="w-4 h-4 text-green-500" />
-                      <span className="text-xs font-medium text-slate-600">Propriétaire</span>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {getSelectedSimulationDetails()?.Proprietaire || 'Non renseigné'}
-                    </p>
+                  <div className="h-4 w-px bg-slate-300"></div>
+
+                  {/* Propriétaire */}
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-green-500" />
+                    <span className="text-slate-600">Par:</span>
+                    <span className="font-medium text-slate-800">
+                      {getSelectedSimulationDetails()?.Proprietaire || 'N/A'}
+                    </span>
                   </div>
 
-                  {/* Commentaire */}
-                  <div className="bg-white rounded-md p-3 border border-slate-200 md:col-span-2 lg:col-span-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <MessageCircle className="w-4 h-4 text-purple-500" />
-                      <span className="text-xs font-medium text-slate-600">Description</span>
-                    </div>
-                    <p className="text-xs text-slate-700 leading-relaxed">
-                      {getSelectedSimulationDetails()?.Commentaire || 'Aucune description'}
-                    </p>
-                  </div>
+                  {getSelectedSimulationDetails()?.Commentaire && getSelectedSimulationDetails()?.Commentaire !== getSelectedSimulationDetails()?.LibelleSimulation && (
+                    <>
+                      <div className="h-4 w-px bg-slate-300"></div>
+                      
+                      {/* Commentaire */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <MessageCircle className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                        <span className="text-slate-600 flex-shrink-0">Note:</span>
+                        <span className="text-slate-700 truncate">
+                          {getSelectedSimulationDetails()?.Commentaire}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
