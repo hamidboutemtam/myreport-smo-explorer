@@ -172,7 +172,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                   <p className="text-2xl font-bold text-blue-900">
                     {prixRevientTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                   </p>
-                  <p className="text-xs text-blue-600 mt-1">Cliquez pour voir le détail</p>
+                  <p className="text-xs text-blue-600 mt-1">Par chapitre - Cliquez pour voir le détail</p>
                 </div>
               </div>
             </div>
@@ -196,7 +196,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                         maximumFractionDigits: 0 
                       }) : '0'} €
                   </p>
-                  <p className="text-xs text-green-600 mt-1">Cliquez pour voir le détail</p>
+                  <p className="text-xs text-green-600 mt-1">Par chapitre - Cliquez pour voir le détail</p>
                 </div>
               </div>
             </div>
@@ -220,7 +220,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                         maximumFractionDigits: 0 
                       }) : '0'} €/m²
                   </p>
-                  <p className="text-xs text-orange-600 mt-1">Cliquez pour voir le détail</p>
+                  <p className="text-xs text-orange-600 mt-1">Par chapitre - Cliquez pour voir le détail</p>
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                     {totals.total.Nb > 0 ? 
                       (totals.total.Shab / totals.total.Nb).toFixed(1) : '0.0'} m²
                   </p>
-                  <p className="text-xs text-purple-600 mt-1">Cliquez pour voir le détail</p>
+                  <p className="text-xs text-purple-600 mt-1">Par chapitre - Cliquez pour voir le détail</p>
                 </div>
               </div>
             </div>
