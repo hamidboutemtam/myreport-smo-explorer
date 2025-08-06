@@ -72,13 +72,22 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
-      console.log('Building URL for operation:', operationId, 'simulation:', selectedSimulation);
       
-      // Pour OData, $filter doit rester non-encodé, seules les valeurs avec caractères spéciaux le sont
-      const filterClause = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=${filterClause}`;
+      // Tester d'abord sans filtre de simulation pour voir si les données existent
+      console.log('Testing data availability...');
+      const testUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}'`;
+      console.log('Test URL (without simulation filter):', testUrl);
       
-      console.log('Constructed URL:', url);
+      const testResponse = await fetch(testUrl, { headers: getAuthHeader() });
+      const testData = await testResponse.json();
+      console.log('Available simulations in typology data:', testData.value?.map(item => item.Code_Simulation) || []);
+      
+      // Maintenant essayer avec la simulation spécifique en utilisant URLSearchParams
+      const params = new URLSearchParams();
+      params.append('$filter', `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`);
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?${params.toString()}`;
+      
+      console.log('Final URL with URLSearchParams:', url);
       const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
@@ -100,13 +109,22 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
-      console.log('Building URL for operation:', operationId, 'simulation:', selectedSimulation);
       
-      // Pour OData, $filter doit rester non-encodé, seules les valeurs avec caractères spéciaux le sont
-      const filterClause = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=${filterClause}`;
+      // Tester d'abord sans filtre de simulation pour voir si les données existent
+      console.log('Testing data availability...');
+      const testUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}'`;
+      console.log('Test URL (without simulation filter):', testUrl);
       
-      console.log('Constructed URL:', url);
+      const testResponse = await fetch(testUrl, { headers: getAuthHeader() });
+      const testData = await testResponse.json();
+      console.log('Available simulations in prix de revient data:', testData.value?.map(item => item.Code_Simulation) || []);
+      
+      // Maintenant essayer avec la simulation spécifique en utilisant URLSearchParams
+      const params = new URLSearchParams();
+      params.append('$filter', `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`);
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?${params.toString()}`;
+      
+      console.log('Final URL with URLSearchParams:', url);
       const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
