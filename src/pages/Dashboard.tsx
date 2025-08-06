@@ -196,6 +196,26 @@ const Dashboard = () => {
     return simulations[0]; // Default to first simulation
   };
 
+  // Determine operation type based on label keywords
+  const getOperationType = (libelle: string): { type: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+    const libelleLower = libelle.toLowerCase();
+    
+    if (libelleLower.includes('construction') || libelleLower.includes('neuve') || libelleLower.includes('neuf')) {
+      return { type: 'Construction neuve', variant: 'default' };
+    }
+    
+    if (libelleLower.includes('résidence sociale') || libelleLower.includes('social') || libelleLower.includes('hlm')) {
+      return { type: 'Résidence sociale', variant: 'secondary' };
+    }
+    
+    if (libelleLower.includes('réhabilitation') || libelleLower.includes('renovation') || libelleLower.includes('rénovation')) {
+      return { type: 'Réhabilitation', variant: 'destructive' };
+    }
+    
+    // Default fallback
+    return { type: 'Autre', variant: 'outline' };
+  };
+
   return (
     <Layout>
       <div className="layout-container">
@@ -349,14 +369,18 @@ const Dashboard = () => {
             </Card>
           ) : (
             <>
-              {Object.entries(groupedOperations).map(([label, operations]) => (
-                <Card key={label} className="data-card overflow-hidden">
-                  <CardHeader className="bg-gray-50">
-                    <CardTitle className="text-lg">{label}</CardTitle>
-                    <CardDescription>
-                      {operations.reduce((total, op) => total + (op.simulations?.length || 0), 0)} simulation{operations.reduce((total, op) => total + (op.simulations?.length || 0), 0) !== 1 ? 's' : ''}
-                    </CardDescription>
-                  </CardHeader>
+              {Object.entries(groupedOperations).map(([label, operations]) => {
+                const operationType = getOperationType(label);
+                return (
+                  <Card key={label} className="data-card overflow-hidden">
+                    <CardHeader className="bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">{label}</CardTitle>
+                        <Badge variant={operationType.variant} className="ml-2">
+                          {operationType.type}
+                        </Badge>
+                      </div>
+                    </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <Table>
@@ -440,8 +464,9 @@ const Dashboard = () => {
                       </Table>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </>
           )}
         </div>
