@@ -522,49 +522,55 @@ const OperationDetail = () => {
                       <Table className="table-compact">
                         <TableHeader>
                           <TableRow className="bg-green-100/50 h-8">
-                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3 border-r border-green-200">Type de logement</TableHead>
                             {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px] text-xs py-2 px-2">
-                                <div>{financing}</div>
-                                <div className="text-[10px] text-gray-500 font-normal mt-1">SHAB / Annexes / SU</div>
+                              <TableHead key={financing} className="border-l border-green-200">
+                                <div className="text-center">
+                                  <div className="font-semibold text-gray-700 text-xs py-1">{financing}</div>
+                                  <div className="grid grid-cols-3 gap-1 mt-2">
+                                    <div className="text-[10px] text-orange-700 font-medium bg-orange-100 px-1 py-0.5 rounded">SHAB</div>
+                                    <div className="text-[10px] text-gray-600 font-medium bg-gray-100 px-1 py-0.5 rounded">Annexes</div>
+                                    <div className="text-[10px] text-green-700 font-medium bg-green-100 px-1 py-0.5 rounded">SU</div>
+                                  </div>
+                                </div>
                               </TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={`h-12 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
+                            <TableRow key={index} className={`h-10 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3 border-r border-green-200">{row.Type}</TableCell>
                               {financingTypes.map(financing => {
                                 const shab = row.byFinancement[financing]?.Shab || 0;
                                 const su = row.byFinancement[financing]?.Su || 0;
                                 const annexes = su - shab;
                                 
                                 return (
-                                  <TableCell key={financing} className="text-center text-xs py-1 px-2">
-                                    <div className="flex flex-col gap-0.5">
-                                      <div className="text-orange-700 font-medium">{shab.toFixed(1)}</div>
-                                      <div className="text-gray-600">{annexes.toFixed(1)}</div>
-                                      <div className="text-green-700 font-medium">{su.toFixed(1)}</div>
+                                  <TableCell key={financing} className="border-l border-green-200 py-1 px-2">
+                                    <div className="grid grid-cols-3 gap-1 text-center">
+                                      <div className="text-xs text-orange-700 font-medium">{shab.toFixed(1)}</div>
+                                      <div className="text-xs text-gray-600">{annexes.toFixed(1)}</div>
+                                      <div className="text-xs text-green-700 font-medium">{su.toFixed(1)}</div>
                                     </div>
                                   </TableCell>
                                 );
                               })}
                             </TableRow>
                           ))}
-                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200 h-12">
-                            <TableCell className="text-gray-900 text-sm py-1 px-3">Total</TableCell>
+                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200 h-10">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3 border-r border-green-200">Total</TableCell>
                             {financingTypes.map(financing => {
                               const totalShab = totals.byFinancement[financing]?.Shab || 0;
                               const totalSu = totals.byFinancement[financing]?.Su || 0;
                               const totalAnnexes = totalSu - totalShab;
                               
                               return (
-                                <TableCell key={financing} className="text-center text-xs py-1 px-2">
-                                  <div className="flex flex-col gap-0.5">
-                                    <div className="text-orange-700 font-semibold">{totalShab.toFixed(1)}</div>
-                                    <div className="text-gray-700 font-semibold">{totalAnnexes.toFixed(1)}</div>
-                                    <div className="text-green-700 font-semibold">{totalSu.toFixed(1)}</div>
+                                <TableCell key={financing} className="border-l border-green-200 py-1 px-2">
+                                  <div className="grid grid-cols-3 gap-1 text-center">
+                                    <div className="text-xs text-orange-700 font-semibold">{totalShab.toFixed(1)}</div>
+                                    <div className="text-xs text-gray-700 font-semibold">{totalAnnexes.toFixed(1)}</div>
+                                    <div className="text-xs text-green-700 font-semibold">{totalSu.toFixed(1)}</div>
                                   </div>
                                 </TableCell>
                               );
