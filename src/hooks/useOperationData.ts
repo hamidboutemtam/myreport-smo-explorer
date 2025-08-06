@@ -72,10 +72,11 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
-      const encodedProject = encodeURIComponent(operationId);
-      const encodedSimulation = encodeURIComponent(selectedSimulation);
+      // Construire l'URL avec les paramètres correctement encodés pour OData
+      const filterQuery = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const encodedFilter = encodeURIComponent(filterQuery);
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${encodedProject}' and Code_Simulation eq '${encodedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=${encodedFilter}`,
         { headers: getAuthHeader() }
       );
       
@@ -95,10 +96,11 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
-      const encodedProject = encodeURIComponent(operationId);
-      const encodedSimulation = encodeURIComponent(selectedSimulation);
+      // Construire l'URL avec les paramètres correctement encodés pour OData
+      const filterQuery = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const encodedFilter = encodeURIComponent(filterQuery);
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${encodedProject}' and Code_Simulation eq '${encodedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=${encodedFilter}`,
         { headers: getAuthHeader() }
       );
       
