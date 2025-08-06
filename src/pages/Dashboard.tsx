@@ -258,44 +258,53 @@ const Dashboard = () => {
     return simulations[0]; // Default to first simulation
   };
 
-  // Determine operation type based on label keywords
-  const getOperationType = (libelle: string): { type: string; icon: any; color: string; borderColor: string } => {
-    const libelleLower = libelle.toLowerCase();
+  // Determine operation type and styling based on nature de construction
+  const getOperationType = (operation: Operation): { type: string; icon: any; color: string; borderColor: string } => {
+    const natureConstruction = operation.natureconstruction?.toLowerCase() || '';
     
-    if (libelleLower.includes('résidence sociale') || libelleLower.includes('social') || libelleLower.includes('hlm')) {
-      return { 
-        type: 'Résidence sociale', 
-        icon: Users, 
-        color: 'text-orange-600 bg-orange-50',
-        borderColor: 'border-l-4 border-l-orange-500'
-      };
-    }
-    
-    if (libelleLower.includes('réhabilitation') || libelleLower.includes('renovation') || libelleLower.includes('rénovation')) {
+    // Mappage des natures de construction vers les styles et contours
+    if (natureConstruction.includes('réhabilitation') || natureConstruction.includes('renovation')) {
       return { 
         type: 'Réhabilitation', 
         icon: Wrench, 
         color: 'text-green-600 bg-green-50',
-        borderColor: 'border-l-4 border-l-green-500'
+        borderColor: 'border-l-4 border-l-green-500 border-green-300'
       };
     }
     
-    // Default to construction neuve (includes explicit matches and fallback)
-    if (libelleLower.includes('construction') || libelleLower.includes('neuve') || libelleLower.includes('neuf')) {
+    if (natureConstruction.includes('acquisition') || natureConstruction.includes('construction')) {
       return { 
-        type: 'Construction neuve', 
+        type: 'Construction/Acquisition', 
         icon: Building, 
         color: 'text-blue-600 bg-blue-50',
-        borderColor: 'border-l-4 border-l-blue-500'
+        borderColor: 'border-l-4 border-l-blue-500 border-blue-300'
       };
     }
     
-    // Fallback is now construction neuve
+    if (natureConstruction.includes('social') || natureConstruction.includes('résidence sociale')) {
+      return { 
+        type: 'Résidence sociale', 
+        icon: Users, 
+        color: 'text-orange-600 bg-orange-50',
+        borderColor: 'border-l-4 border-l-orange-500 border-orange-300'
+      };
+    }
+
+    if (natureConstruction.includes('vente')) {
+      return { 
+        type: 'Vente', 
+        icon: Building2, 
+        color: 'text-purple-600 bg-purple-50',
+        borderColor: 'border-l-4 border-l-purple-500 border-purple-300'
+      };
+    }
+    
+    // Fallback par défaut selon la nature de construction de l'API
     return { 
-      type: 'Construction neuve', 
+      type: operation.natureconstruction || 'Non définie', 
       icon: Building2, 
-      color: 'text-blue-600 bg-blue-50',
-      borderColor: 'border-l-4 border-l-blue-500'
+      color: 'text-gray-600 bg-gray-50',
+      borderColor: 'border-l-4 border-l-gray-500 border-gray-300'
     };
   };
 
@@ -547,15 +556,15 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-3">
                   {Object.entries(paginatedGroupedOperations).map(([label, operations]) => {
-                    const operationType = getOperationType(label);
                     const firstOperation = operations[0];
+                    const operationType = getOperationType(firstOperation);
                     const totalSimulations = operations.reduce((total, op) => total + (op.simulations?.length || 0), 0);
                     const mostRecentDate = getMostRecentDate(firstOperation);
                     
                     return (
                       <Card 
                         key={label} 
-                        className="border-0 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 cursor-pointer group"
+                        className={`border-0 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 cursor-pointer group ${operationType.borderColor}`}
                         onClick={() => navigate(`/operation/${firstOperation.id}`)}
                       >
                         <CardContent className="p-6">
