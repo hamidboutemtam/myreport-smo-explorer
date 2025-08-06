@@ -91,18 +91,35 @@ const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
 
 // Get operations with optional filters
 export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
+  console.log('🔍 Starting API call to:', API_BASE_URL);
+  console.log('🔑 Using headers:', getAuthHeader());
+  
   try {
+    console.log('📡 Making fetch request...');
     const response = await fetch(API_BASE_URL, {
       method: 'GET',
       headers: getAuthHeader(),
     });
 
+    console.log('📨 Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    });
+
     if (!response.ok) {
+      console.error('❌ API Response not OK:', response.status, response.statusText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    console.log('📊 Parsing JSON response...');
     const apiData: ApiOperationData[] = await response.json();
+    console.log('✅ API Data received:', apiData);
+    console.log('📈 Number of items:', apiData?.length || 0);
+    
+    console.log('🔄 Transforming API data...');
     let operations = transformApiData(apiData);
+    console.log('🏗️ Transformed operations:', operations);
     // Apply filters if provided
     if (filters) {
       operations = operations.filter(op => {
@@ -128,9 +145,14 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
       });
     }
 
+    console.log('🎯 Returning filtered operations:', operations);
     return operations;
   } catch (error) {
-    console.error('Error fetching operations:', error);
+    console.error('💥 Error fetching operations:', error);
+    console.error('📋 Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     throw new Error('Erreur lors de la récupération des données');
   }
 };
