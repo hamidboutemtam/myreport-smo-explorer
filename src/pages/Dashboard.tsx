@@ -76,14 +76,17 @@ const Dashboard = () => {
       await getOperationsProgressive(
         filters,
         (progressOperations, isComplete, loadedCount) => {
+          // ✅ AFFICHER IMMÉDIATEMENT les opérations au fur et à mesure
           setOperations([...progressOperations]); // Spread to force re-render
           setLoadingProgress(loadedCount);
           
+          // Mettre à jour le message sans attendre la completion
+          setLoadingMessage(`${loadedCount} éléments chargés...`);
+          
+          // Stopper le loading seulement quand c'est vraiment terminé
           if (isComplete) {
             setLoadingMessage(`Chargement terminé - ${progressOperations.length} opérations trouvées`);
             setLoading(false);
-          } else {
-            setLoadingMessage(`Chargement en cours... ${loadedCount} éléments traités`);
           }
         }
       );
@@ -482,172 +485,211 @@ const Dashboard = () => {
         )}
 
         {/* Operations data */}
-        {loading ? (
-          <Card className="border-0 bg-card/50 backdrop-blur-sm">
-            <CardContent className="py-16">
-              <div className="text-center space-y-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary mx-auto"></div>
-                <p className="text-muted-foreground">{loadingMessage}</p>
+        <div className="space-y-6">
+          {/* Loading state - mais afficher les données même pendant le chargement */}
+          {loading && operations.length === 0 && (
+            <Card className="p-8">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mb-4">
+                  <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Chargement des données
+                </h3>
+                <p className="text-gray-600 mb-4">{loadingMessage}</p>
                 {loadingProgress > 0 && (
-                  <div className="w-full max-w-xs mx-auto bg-muted rounded-full h-1">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-primary h-1 rounded-full transition-all duration-300" 
-                      style={{ width: `${Math.min((loadingProgress / 50) * 100, 100)}%` }}
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (loadingProgress / 1000) * 100)}%` }}
                     />
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        ) : Object.keys(paginatedGroupedOperations).length === 0 ? (
-          <Card className="border-0 bg-card/50 backdrop-blur-sm">
-            <CardContent className="py-16">
-              <div className="text-center space-y-4">
-                <Building className="h-12 w-12 text-muted-foreground/30 mx-auto" />
-                <div>
-                  <p className="text-muted-foreground text-lg">
-                    {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Aucune opération'}
-                  </p>
-                  <p className="text-muted-foreground/60 text-sm mt-1">
-                    {searchTerm ? 'Essayez avec d\'autres termes' : 'Les opérations apparaîtront ici'}
-                  </p>
+            </Card>
+          )}
+
+          {/* Afficher les opérations même pendant le chargement */}
+          {operations.length > 0 && (
+            <>
+              {/* Message de chargement en cours si applicable */}
+              {loading && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">{loadingMessage}</span>
+                  </div>
                 </div>
-                {searchTerm && (
-                  <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); resetToFirstPage(); }}>
-                    Effacer la recherche
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {Object.entries(paginatedGroupedOperations).map(([label, operations]) => {
-              const operationType = getOperationType(label);
-              const firstOperation = operations[0];
-              const totalSimulations = operations.reduce((total, op) => total + (op.simulations?.length || 0), 0);
-              const mostRecentDate = getMostRecentDate(firstOperation);
-              
-              return (
-                <Card 
-                  key={label} 
-                  className="border-0 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 cursor-pointer group"
-                  onClick={() => navigate(`/operation/${firstOperation.id}`)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      {/* Left: Main content */}
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-xl ${operationType.color} group-hover:scale-105 transition-transform`}>
-                          <operationType.icon className="h-5 w-5" />
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
-                            {label}
-                          </h3>
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span className="flex items-center space-x-1">
-                              <operationType.icon className="h-3.5 w-3.5" />
-                              <span>{operationType.type}</span>
-                            </span>
-                            {firstOperation.commune && (
-                              <span className="flex items-center space-x-1">
-                                <MapPin className="h-3.5 w-3.5" />
-                                <span>{firstOperation.commune}</span>
-                              </span>
-                            )}
-                            {firstOperation.responsable && (
-                              <span className="flex items-center space-x-1">
-                                <User className="h-3.5 w-3.5" />
-                                <span>{firstOperation.responsable}</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
+              )}
+
+              {/* Liste des opérations */}
+              {Object.keys(paginatedGroupedOperations).length === 0 ? (
+                <Card className="border-0 bg-card/50 backdrop-blur-sm">
+                  <CardContent className="py-16">
+                    <div className="text-center space-y-4">
+                      <Building className="h-12 w-12 text-muted-foreground/30 mx-auto" />
+                      <div>
+                        <p className="text-muted-foreground text-lg">
+                          {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Aucune opération'}
+                        </p>
+                        <p className="text-muted-foreground/60 text-sm mt-1">
+                          {searchTerm ? 'Essayez avec d\'autres termes' : 'Les opérations apparaîtront ici'}
+                        </p>
                       </div>
-
-                      {/* Right: Meta info */}
-                      <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Hash className="h-3.5 w-3.5" />
-                          <span>{totalSimulations} simulation{totalSimulations !== 1 ? 's' : ''}</span>
-                        </div>
-                        
-                        {mostRecentDate && (
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            <span>{mostRecentDate.toLocaleDateString('fr-FR')}</span>
-                          </div>
-                        )}
-
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary hover:bg-primary/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/operation/${firstOperation.id}`);
-                          }}
-                        >
-                          <BarChart3 className="h-4 w-4 mr-1" />
-                          Analyser
+                      {searchTerm && (
+                        <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); resetToFirstPage(); }}>
+                          Effacer la recherche
                         </Button>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
-              );
-            })}
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center pt-6">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
+              ) : (
+                <div className="space-y-3">
+                  {Object.entries(paginatedGroupedOperations).map(([label, operations]) => {
+                    const operationType = getOperationType(label);
+                    const firstOperation = operations[0];
+                    const totalSimulations = operations.reduce((total, op) => total + (op.simulations?.length || 0), 0);
+                    const mostRecentDate = getMostRecentDate(firstOperation);
                     
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                      const showPage = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
-                      
-                      if (!showPage && page === 2 && currentPage > 4) {
-                        return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
-                      }
-                      if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
-                        return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
-                      }
-                      if (!showPage) return null;
-                      
-                      return (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    })}
-                    
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                    return (
+                      <Card 
+                        key={label} 
+                        className="border-0 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-200 cursor-pointer group"
+                        onClick={() => navigate(`/operation/${firstOperation.id}`)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            {/* Left: Main content */}
+                            <div className="flex items-center space-x-4">
+                              <div className={`p-3 rounded-xl ${operationType.color} group-hover:scale-105 transition-transform`}>
+                                <operationType.icon className="h-5 w-5" />
+                              </div>
+                              
+                              <div className="space-y-1">
+                                <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
+                                  {label}
+                                </h3>
+                                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                  <span className="flex items-center space-x-1">
+                                    <operationType.icon className="h-3.5 w-3.5" />
+                                    <span>{operationType.type}</span>
+                                  </span>
+                                  {firstOperation.commune && (
+                                    <span className="flex items-center space-x-1">
+                                      <MapPin className="h-3.5 w-3.5" />
+                                      <span>{firstOperation.commune}</span>
+                                    </span>
+                                  )}
+                                  {firstOperation.responsable && (
+                                    <span className="flex items-center space-x-1">
+                                      <User className="h-3.5 w-3.5" />
+                                      <span>{firstOperation.responsable}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right: Meta info */}
+                            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                              <div className="flex items-center space-x-1">
+                                <Hash className="h-3.5 w-3.5" />
+                                <span>{totalSimulations} simulation{totalSimulations !== 1 ? 's' : ''}</span>
+                              </div>
+                              
+                              {mostRecentDate && (
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  <span>{mostRecentDate.toLocaleDateString('fr-FR')}</span>
+                                </div>
+                              )}
+
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary hover:bg-primary/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/operation/${firstOperation.id}`);
+                                }}
+                              >
+                                <BarChart3 className="h-4 w-4 mr-1" />
+                                Analyser
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center pt-6">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            const showPage = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                            
+                            if (!showPage && page === 2 && currentPage > 4) {
+                              return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
+                            }
+                            if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
+                              return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>;
+                            }
+                            if (!showPage) return null;
+                            
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(page)}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+                          
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Message si aucune opération trouvée */}
+          {!loading && operations.length === 0 && (
+            <Card className="p-8">
+              <div className="text-center">
+                <Building className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune opération trouvée</h3>
+                <p className="text-gray-600">
+                  {Object.keys(filters).length > 0 || searchTerm
+                    ? 'Essayez de modifier vos critères de recherche.'
+                    : 'Aucune donnée disponible pour le moment.'}
+                </p>
               </div>
-            )}
-          </div>
-        )}
+            </Card>
+          )}
+        </div>
       </div>
     </Layout>
   );
