@@ -72,11 +72,10 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
-      // Utiliser la même approche que dans l'original qui fonctionnait
-      const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
-        { headers: getAuthHeader() }
-      );
+      // Construire l'URL avec le paramètre $filter correctement encodé
+      const filterParam = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?${encodeURIComponent('$filter')}=${encodeURIComponent(filterParam)}`;
+      const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
         console.error('Typology fetch failed:', response.status, response.statusText);
@@ -97,11 +96,10 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
-      // Utiliser la même approche que dans l'original qui fonctionnait
-      const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
-        { headers: getAuthHeader() }
-      );
+      // Construire l'URL avec le paramètre $filter correctement encodé
+      const filterParam = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?${encodeURIComponent('$filter')}=${encodeURIComponent(filterParam)}`;
+      const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
         console.error('Prix de revient fetch failed:', response.status, response.statusText);
