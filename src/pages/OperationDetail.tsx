@@ -9,12 +9,15 @@ import { ArrowLeft, Building, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TypologyData {
-  TypeLogement: string;
-  Programme: string;
-  NbLogements: number;
-  SurfaceUtile: number;
-  SurfaceHabitable: number;
-  TypeFinancement: string;
+  Code_Projet: string;
+  Code_Simulation: string;
+  Code_Programme: string;
+  Designation: string;
+  Nb: number;
+  Type: string;
+  SurfHabMoy: number;
+  Shab: number;
+  Su: number;
 }
 
 interface Simulation {
@@ -117,43 +120,43 @@ const OperationDetail = () => {
 
   // Group data by type and program
   const groupedData = typologyData.reduce((acc, item) => {
-    const key = `${item.TypeLogement}_${item.Programme}`;
+    const key = `${item.Type}_${item.Code_Programme}`;
     if (!acc[key]) {
       acc[key] = {
-        TypeLogement: item.TypeLogement,
-        Programme: item.Programme,
+        Type: item.Type,
+        Programme: item.Code_Programme,
         byFinancement: {}
       };
     }
-    acc[key].byFinancement[item.TypeFinancement] = {
-      NbLogements: item.NbLogements,
-      SurfaceUtile: item.SurfaceUtile,
-      SurfaceHabitable: item.SurfaceHabitable
+    acc[key].byFinancement[item.Code_Programme] = {
+      Nb: item.Nb,
+      Su: item.Su,
+      Shab: item.Shab
     };
     return acc;
   }, {} as any);
 
-  // Get unique financing types
-  const financingTypes = [...new Set(typologyData.map(item => item.TypeFinancement))];
+  // Get unique financing types (programmes)
+  const financingTypes = [...new Set(typologyData.map(item => item.Code_Programme))];
 
   // Calculate totals
   const calculateTotals = () => {
     const totals = {
       byFinancement: {} as any,
-      total: { NbLogements: 0, SurfaceUtile: 0, SurfaceHabitable: 0 }
+      total: { Nb: 0, Su: 0, Shab: 0 }
     };
 
     financingTypes.forEach(financing => {
-      totals.byFinancement[financing] = { NbLogements: 0, SurfaceUtile: 0, SurfaceHabitable: 0 };
+      totals.byFinancement[financing] = { Nb: 0, Su: 0, Shab: 0 };
     });
 
     typologyData.forEach(item => {
-      totals.byFinancement[item.TypeFinancement].NbLogements += item.NbLogements;
-      totals.byFinancement[item.TypeFinancement].SurfaceUtile += item.SurfaceUtile;
-      totals.byFinancement[item.TypeFinancement].SurfaceHabitable += item.SurfaceHabitable;
-      totals.total.NbLogements += item.NbLogements;
-      totals.total.SurfaceUtile += item.SurfaceUtile;
-      totals.total.SurfaceHabitable += item.SurfaceHabitable;
+      totals.byFinancement[item.Code_Programme].Nb += item.Nb;
+      totals.byFinancement[item.Code_Programme].Su += item.Su;
+      totals.byFinancement[item.Code_Programme].Shab += item.Shab;
+      totals.total.Nb += item.Nb;
+      totals.total.Su += item.Su;
+      totals.total.Shab += item.Shab;
     });
 
     return totals;
@@ -252,25 +255,25 @@ const OperationDetail = () => {
                   <TableBody>
                     {Object.values(groupedData).map((row: any, index) => (
                       <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                        <TableCell className="font-medium">{row.TypeLogement}</TableCell>
+                        <TableCell className="font-medium">{row.Type}</TableCell>
                         <TableCell className="text-center font-semibold">
                           {financingTypes.reduce((sum, financing) => 
-                            sum + (row.byFinancement[financing]?.NbLogements || 0), 0
+                            sum + (row.byFinancement[financing]?.Nb || 0), 0
                           )}
                         </TableCell>
                         {financingTypes.map(financing => (
                           <TableCell key={financing} className="text-center">
-                            {row.byFinancement[financing]?.NbLogements || 0}
+                            {row.byFinancement[financing]?.Nb || 0}
                           </TableCell>
                         ))}
                       </TableRow>
                     ))}
                     <TableRow className="bg-blue-100 font-semibold">
                       <TableCell>Total</TableCell>
-                      <TableCell className="text-center">{totals.total.NbLogements}</TableCell>
+                      <TableCell className="text-center">{totals.total.Nb}</TableCell>
                       {financingTypes.map(financing => (
                         <TableCell key={financing} className="text-center">
-                          {totals.byFinancement[financing]?.NbLogements || 0}
+                          {totals.byFinancement[financing]?.Nb || 0}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -304,25 +307,25 @@ const OperationDetail = () => {
                       <TableBody>
                         {Object.values(groupedData).map((row: any, index) => (
                           <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                            <TableCell className="font-medium">{row.TypeLogement}</TableCell>
+                            <TableCell className="font-medium">{row.Type}</TableCell>
                             <TableCell className="text-center font-semibold">
                               {financingTypes.reduce((sum, financing) => 
-                                sum + (row.byFinancement[financing]?.SurfaceUtile || 0), 0
+                                sum + (row.byFinancement[financing]?.Su || 0), 0
                               )}
                             </TableCell>
                             {financingTypes.map(financing => (
                               <TableCell key={financing} className="text-center">
-                                {row.byFinancement[financing]?.SurfaceUtile || 0}
+                                {row.byFinancement[financing]?.Su || 0}
                               </TableCell>
                             ))}
                           </TableRow>
                         ))}
                         <TableRow className="bg-blue-100 font-semibold">
                           <TableCell>Surface totale</TableCell>
-                          <TableCell className="text-center">{totals.total.SurfaceUtile}</TableCell>
+                          <TableCell className="text-center">{totals.total.Su}</TableCell>
                           {financingTypes.map(financing => (
                             <TableCell key={financing} className="text-center">
-                              {totals.byFinancement[financing]?.SurfaceUtile || 0}
+                              {totals.byFinancement[financing]?.Su || 0}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -346,25 +349,25 @@ const OperationDetail = () => {
                       <TableBody>
                         {Object.values(groupedData).map((row: any, index) => (
                           <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                            <TableCell className="font-medium">{row.TypeLogement}</TableCell>
+                            <TableCell className="font-medium">{row.Type}</TableCell>
                             <TableCell className="text-center font-semibold">
                               {financingTypes.reduce((sum, financing) => 
-                                sum + (row.byFinancement[financing]?.SurfaceHabitable || 0), 0
+                                sum + (row.byFinancement[financing]?.Shab || 0), 0
                               )}
                             </TableCell>
                             {financingTypes.map(financing => (
                               <TableCell key={financing} className="text-center">
-                                {row.byFinancement[financing]?.SurfaceHabitable || 0}
+                                {row.byFinancement[financing]?.Shab || 0}
                               </TableCell>
                             ))}
                           </TableRow>
                         ))}
                         <TableRow className="bg-blue-100 font-semibold">
                           <TableCell>Surface totale</TableCell>
-                          <TableCell className="text-center">{totals.total.SurfaceHabitable}</TableCell>
+                          <TableCell className="text-center">{totals.total.Shab}</TableCell>
                           {financingTypes.map(financing => (
                             <TableCell key={financing} className="text-center">
-                              {totals.byFinancement[financing]?.SurfaceHabitable || 0}
+                              {totals.byFinancement[financing]?.Shab || 0}
                             </TableCell>
                           ))}
                         </TableRow>
