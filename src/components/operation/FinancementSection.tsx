@@ -1,23 +1,39 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, Euro } from 'lucide-react';
-import { PrixRevientData, PrixRevientTableRow, PrixRevientChartData, TypologyTotals } from '@/types/operation';
+import { TypologyTotals } from '@/types/operation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-interface BudgetSectionProps {
-  prixRevientData: PrixRevientData[];
-  totals: TypologyTotals;
-  loading: boolean;
-  // onChapterSelect removed since we no longer use it
+interface FinancementData {
+  Code_Projet: string;
+  Code_Simulation: string;
+  Code_Programme: string;
+  FondsPropres?: number;
+  Subventions?: number;
+  Prets?: number;
+  Total?: number;
 }
 
-export const BudgetSection: React.FC<BudgetSectionProps> = ({
-  prixRevientData,
+interface FinancementTableRow {
+  chapter: string;
+  fondsPropres: number;
+  subventions: number;
+  prets: number;
+  total: number;
+}
+
+interface FinancementSectionProps {
+  financementData: FinancementData[];
+  totals: TypologyTotals;
+  loading: boolean;
+}
+
+export const FinancementSection: React.FC<FinancementSectionProps> = ({
+  financementData,
   totals,
   loading
 }) => {
-  // Suppression des onglets - plus besoin d'activeTab ni selectedChapter pour les onglets
   const [selectedRatio, setSelectedRatio] = useState<string | null>(null);
 
   if (loading) {
@@ -26,32 +42,32 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         <CardHeader className="pb-4">
           <CardTitle className="text-base flex items-center gap-2 text-foreground">
             <Calculator className="w-4 h-4" />
-            Prix de revient LASM de l'opération
+            Plan de financement de l'opération
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="ml-2 text-sm text-muted-foreground">Chargement des données budgétaires...</span>
+            <span className="ml-2 text-sm text-muted-foreground">Chargement des données de financement...</span>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (!prixRevientData || prixRevientData.length === 0) {
+  if (!financementData || financementData.length === 0) {
     return (
       <Card className="border-0 bg-card/60 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-base flex items-center gap-2 text-foreground">
             <Calculator className="w-4 h-4" />
-            Budget de l'opération
+            Plan de financement de l'opération
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <Calculator className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Aucune donnée budgétaire disponible pour cette simulation.</p>
+            <p className="text-muted-foreground">Aucune donnée de financement disponible pour cette simulation.</p>
           </div>
         </CardContent>
       </Card>
@@ -59,14 +75,12 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
   }
 
   // Calcul des données pour le tableau
-  const prixRevientTable: PrixRevientTableRow[] = prixRevientData.map(item => ({
+  const financementTable: FinancementTableRow[] = financementData.map(item => ({
     chapter: item.Code_Programme || 'Programme principal',
-    foncier: item.ChargeFonciereFisc || 0,
-    travaux: item.CoutTravauxFisc || 0,
-    honoraires: item.HonorairesFisc || 0,
-    actualisation: item.ActuRevisFisc || 0,
-    financier: item.FraisFinancierFisc || 0,
-    total: item.TotalFisc || 0
+    fondsPropres: item.FondsPropres || 0,
+    subventions: item.Subventions || 0,
+    prets: item.Prets || 0,
+    total: item.Total || 0
   }));
 
   const handleRatioClick = (ratioType: string) => {
@@ -77,7 +91,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
   const getDetailedData = () => {
     if (!selectedRatio) return [];
     
-    const detailedData = prixRevientTable.map(row => {
+    const detailedData = financementTable.map(row => {
       let value: number;
       let unit: string;
       
@@ -109,21 +123,15 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         value: value,
         unit: unit,
         details: {
-          foncier: selectedRatio === 'total' ? row.foncier : 
-                   selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.foncier / totals.total.Nb : 0) :
-                   selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.foncier / totals.total.Shab : 0) : 0,
-          travaux: selectedRatio === 'total' ? row.travaux : 
-                   selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.travaux / totals.total.Nb : 0) :
-                   selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.travaux / totals.total.Shab : 0) : 0,
-          honoraires: selectedRatio === 'total' ? row.honoraires : 
-                      selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.honoraires / totals.total.Nb : 0) :
-                      selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.honoraires / totals.total.Shab : 0) : 0,
-          actualisation: selectedRatio === 'total' ? row.actualisation : 
-                         selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.actualisation / totals.total.Nb : 0) :
-                         selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.actualisation / totals.total.Shab : 0) : 0,
-          financier: selectedRatio === 'total' ? row.financier : 
-                     selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.financier / totals.total.Nb : 0) :
-                     selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.financier / totals.total.Shab : 0) : 0
+          fondsPropres: selectedRatio === 'total' ? row.fondsPropres : 
+                       selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.fondsPropres / totals.total.Nb : 0) :
+                       selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.fondsPropres / totals.total.Shab : 0) : 0,
+          subventions: selectedRatio === 'total' ? row.subventions : 
+                      selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.subventions / totals.total.Nb : 0) :
+                      selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.subventions / totals.total.Shab : 0) : 0,
+          prets: selectedRatio === 'total' ? row.prets : 
+                selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.prets / totals.total.Nb : 0) :
+                selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.prets / totals.total.Shab : 0) : 0
         }
       };
     });
@@ -135,9 +143,9 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
 
   const getRatioTitle = () => {
     switch (selectedRatio) {
-      case 'total': return 'Prix de revient total par nature de financement';
-      case 'logement': return 'Prix de revient par logement et par nature de financement';
-      case 'shab': return 'Prix de revient par m² SHAB et par nature de financement';
+      case 'total': return 'Plan de financement total par nature de financement';
+      case 'logement': return 'Plan de financement par logement et par nature de financement';
+      case 'shab': return 'Plan de financement par m² SHAB et par nature de financement';
       case 'surface': return 'Surface moyenne par logement et par nature de financement';
       default: return '';
     }
@@ -148,14 +156,14 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="text-base flex items-center gap-2 text-foreground">
           <Calculator className="w-4 h-4" />
-          Prix de revient LASM de l'opération
+          Plan de financement de l'opération
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Étiquettes de ratios du prix de revient */}
+        {/* Étiquettes de ratios du plan de financement */}
         <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Prix de revient total */}
+            {/* Plan de financement total */}
             <div 
               className={`bg-blue-50 rounded-lg p-4 border border-blue-200 cursor-pointer transition-all hover:shadow-md ${
                 selectedRatio === 'total' ? 'ring-2 ring-blue-500 bg-blue-100' : ''
@@ -167,16 +175,16 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                   <Euro className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Prix de revient total</p>
+                  <p className="text-sm text-blue-600 font-medium">Plan de financement total</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    {prixRevientTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    {financementTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                   </p>
                   <p className="text-xs text-blue-600 mt-1">Cliquez pour voir le détail</p>
                 </div>
               </div>
             </div>
 
-            {/* Prix de revient par logement */}
+            {/* Plan de financement par logement */}
             <div 
               className={`bg-green-50 rounded-lg p-4 border border-green-200 cursor-pointer transition-all hover:shadow-md ${
                 selectedRatio === 'logement' ? 'ring-2 ring-green-500 bg-green-100' : ''
@@ -188,10 +196,10 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                   <Calculator className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Prix de revient par logement</p>
+                  <p className="text-sm text-green-600 font-medium">Plan de financement par logement</p>
                   <p className="text-2xl font-bold text-green-900">
                     {totals.total.Nb > 0 ? 
-                      (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Nb).toLocaleString('fr-FR', { 
+                      (financementTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Nb).toLocaleString('fr-FR', { 
                         maximumFractionDigits: 0 
                       }) : '0'} €
                   </p>
@@ -200,7 +208,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
               </div>
             </div>
 
-            {/* Prix de revient par m² SHAB */}
+            {/* Plan de financement par m² SHAB */}
             <div 
               className={`bg-orange-50 rounded-lg p-4 border border-orange-200 cursor-pointer transition-all hover:shadow-md ${
                 selectedRatio === 'shab' ? 'ring-2 ring-orange-500 bg-orange-100' : ''
@@ -212,10 +220,10 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                   <Calculator className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-orange-600 font-medium">Prix de revient par m² SHAB</p>
+                  <p className="text-sm text-orange-600 font-medium">Plan de financement par m² SHAB</p>
                   <p className="text-2xl font-bold text-orange-900">
                     {totals.total.Shab > 0 ? 
-                      (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Shab).toLocaleString('fr-FR', { 
+                      (financementTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Shab).toLocaleString('fr-FR', { 
                         maximumFractionDigits: 0 
                       }) : '0'} €/m²
                   </p>
@@ -268,11 +276,9 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">Nature de financement</TableHead>
-                    <TableHead className="text-right font-semibold">Charge foncière</TableHead>
-                    <TableHead className="text-right font-semibold">Coût travaux</TableHead>
-                    <TableHead className="text-right font-semibold">Honoraires</TableHead>
-                    <TableHead className="text-right font-semibold">Actualisation</TableHead>
-                    <TableHead className="text-right font-semibold">Frais financiers</TableHead>
+                    <TableHead className="text-right font-semibold">Fonds propres</TableHead>
+                    <TableHead className="text-right font-semibold">Subventions</TableHead>
+                    <TableHead className="text-right font-semibold">Prêts</TableHead>
                     <TableHead className="text-right font-semibold">Total</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -285,7 +291,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {row.details.foncier.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                        {row.details.fondsPropres.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
                         {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
                           <span className="text-xs text-muted-foreground ml-1">
                             /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
@@ -293,7 +299,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {row.details.travaux.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                        {row.details.subventions.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
                         {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
                           <span className="text-xs text-muted-foreground ml-1">
                             /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
@@ -301,23 +307,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {row.details.honoraires.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.actualisation.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.financier.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                        {row.details.prets.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
                         {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
                           <span className="text-xs text-muted-foreground ml-1">
                             /{selectedRatio === 'logement' ? 'lgt' : 'm²'}

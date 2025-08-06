@@ -5,6 +5,7 @@ import { BarChart3, Calendar, MapPin, Clock, User, MessageCircle, CheckCircle } 
 import { OperationHeader } from '@/components/operation/OperationHeader';
 import { ProgramComposition } from '@/components/operation/ProgramComposition';
 import { BudgetSection } from '@/components/operation/BudgetSection';
+import { FinancementSection } from '@/components/operation/FinancementSection';
 import { useOperationData } from '@/hooks/useOperationData';
 import { TypologyTotals } from '@/types/operation';
 
@@ -16,6 +17,7 @@ const OperationDetail = () => {
   const {
     typologyData,
     prixRevientData,
+    financementData,
     programCaracData,
     simulations,
     selectedSimulation,
@@ -121,6 +123,11 @@ const OperationDetail = () => {
             <TabsContent value="budget" className="space-y-6 mt-6">
               <BudgetSection
                 prixRevientData={prixRevientData}
+                totals={totals}
+                loading={loading}
+              />
+              <FinancementSection
+                financementData={financementData}
                 totals={totals}
                 loading={loading}
               />

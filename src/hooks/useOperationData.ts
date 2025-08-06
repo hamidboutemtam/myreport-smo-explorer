@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export const useOperationData = (operationId: string | undefined) => {
   const [typologyData, setTypologyData] = useState<TypologyData[]>([]);
   const [prixRevientData, setPrixRevientData] = useState<PrixRevientData[]>([]);
+  const [financementData, setFinancementData] = useState<any[]>([]);
   const [programCaracData, setProgramCaracData] = useState<any[]>([]);
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [selectedSimulation, setSelectedSimulation] = useState<string>('');
@@ -194,6 +195,36 @@ export const useOperationData = (operationId: string | undefined) => {
     }
   };
 
+  const fetchFinancementData = async () => {
+    if (!operationId || !selectedSimulation) return;
+
+    try {
+      console.log('Fetching financement data for simulation:', selectedSimulation);
+      
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRFinancementPrgDetailles?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
+      
+      console.log('Financement data received:', allData);
+      setFinancementData(allData || []);
+    } catch (error) {
+      console.error('Error fetching financement data:', error);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying financement without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRFinancementPrgDetailles?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered financement data:', filteredData);
+        setFinancementData(filteredData || []);
+      } catch (retryError) {
+        console.error('Financement retry failed:', retryError);
+        setFinancementData([]);
+      }
+    }
+  };
+
   const refreshData = async () => {
     if (!selectedSimulation) {
       setLoading(false);
@@ -205,7 +236,8 @@ export const useOperationData = (operationId: string | undefined) => {
       await Promise.all([
         fetchTypologyData(),
         fetchPrixRevientData(),
-        fetchProgramCaracData()
+        fetchProgramCaracData(),
+        fetchFinancementData()
       ]);
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -228,6 +260,7 @@ export const useOperationData = (operationId: string | undefined) => {
   return {
     typologyData,
     prixRevientData,
+    financementData,
     programCaracData,
     simulations,
     selectedSimulation,
