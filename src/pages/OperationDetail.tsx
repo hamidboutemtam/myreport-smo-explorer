@@ -45,6 +45,7 @@ const OperationDetail = () => {
     if (!operationId) return;
     
     try {
+      console.log('Fetching simulations for operation:', operationId);
       const response = await fetch(
         `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp?$filter=Code_Projet eq '${operationId}'`,
         { headers: getAuthHeader() }
@@ -53,6 +54,8 @@ const OperationDetail = () => {
       if (!response.ok) throw new Error('Failed to fetch simulations');
       
       const data = await response.json();
+      console.log('Simulations data received:', data);
+      
       const uniqueSimulations = data.value.reduce((acc: any[], curr: any) => {
         if (!acc.find(sim => sim.Code_Simulation === curr.Code_Simulation)) {
           acc.push({
@@ -65,6 +68,7 @@ const OperationDetail = () => {
         return acc;
       }, []);
       
+      console.log('Unique simulations:', uniqueSimulations);
       setSimulations(uniqueSimulations);
       setOperationInfo(data.value[0]);
       
@@ -82,14 +86,16 @@ const OperationDetail = () => {
     
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}'`,
-        { headers: getAuthHeader() }
-      );
+      console.log('Fetching typology for:', { operationId, simulationCode });
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}'`;
+      console.log('API URL:', url);
+      
+      const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) throw new Error('Failed to fetch typology data');
       
       const data = await response.json();
+      console.log('Typology data received:', data);
       setTypologyData(data.value || []);
     } catch (error) {
       console.error('Error fetching typology data:', error);
