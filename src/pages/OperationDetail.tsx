@@ -829,17 +829,17 @@ const OperationDetail = () => {
                 {/* Onglet Graphique */}
                 <TabsContent value="graphique" className="space-y-3 mt-4">
                   <div className="flex flex-col lg:flex-row gap-4">
-                    {/* Graphique compact */}
+                    {/* Graphique agrandi */}
                     <div className="flex-1">
-                      <div className="h-48">
+                      <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                           <RechartsPieChart>
                             <Pie
                               data={prixRevientChart}
                               cx="50%"
                               cy="50%"
-                              innerRadius={30}
-                              outerRadius={70}
+                              innerRadius={50}
+                              outerRadius={120}
                               dataKey="value"
                               onClick={(data) => {
                                 setSelectedChapter(data.name);
