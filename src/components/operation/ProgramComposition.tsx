@@ -18,6 +18,8 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
   totals,
   loading
 }) => {
+  // État pour la nature de financement sélectionnée
+  const [selectedFinancing, setSelectedFinancing] = React.useState<string | null>(null);
   // Créer un mapping des codes programmes vers leurs caractéristiques
   const programMapping = React.useMemo(() => {
     if (!programCaracData || programCaracData.length === 0) return {};
@@ -66,6 +68,32 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
       return acc;
     }, {} as Record<string, { Nb: number; Shab: number; Su: number; LRet: number; ProdLocLoyerRet: number; SurfAnnexes: number; LibelleProgramme: string }>);
   }, [typologyData, programMapping]);
+
+  // Filtrer les données de typologie selon la sélection
+  const filteredTypologyData = React.useMemo(() => {
+    if (!selectedFinancing) return [];
+    
+    return typologyData.filter(row => {
+      const programCode = row.Code_Programme || 'Non défini';
+      const programInfo = programMapping[programCode];
+      const financing = programInfo?.NatureFinancement || programCode;
+      return financing === selectedFinancing;
+    });
+  }, [typologyData, programMapping, selectedFinancing]);
+
+  // Calculer les totaux pour les données filtrées
+  const filteredTotals = React.useMemo(() => {
+    return filteredTypologyData.reduce(
+      (acc, item) => ({
+        Nb: acc.Nb + item.Nb,
+        Shab: acc.Shab + item.Shab,
+        Su: acc.Su + item.Su,
+        SurfHabMoy: acc.SurfHabMoy + (item.SurfHabMoy * item.Nb),
+        ProdLocLoyerRet: acc.ProdLocLoyerRet + item.ProdLocLoyerRet,
+      }),
+      { Nb: 0, Shab: 0, Su: 0, SurfHabMoy: 0, ProdLocLoyerRet: 0 }
+    );
+  }, [filteredTypologyData]);
 
   if (loading) {
     return (
@@ -164,6 +192,9 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Euro className="w-5 h-5 text-primary" />
               Répartition par nature de financement
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                (Cliquez sur une ligne pour voir le détail)
+              </span>
             </h3>
             <div className="overflow-x-auto">
               <Table>
@@ -180,7 +211,13 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                 </TableHeader>
                 <TableBody>
                   {Object.entries(financingTotals).map(([financing, data]) => (
-                    <TableRow key={financing} className="hover:bg-muted/30 transition-colors">
+                    <TableRow 
+                      key={financing} 
+                      className={`hover:bg-muted/30 transition-colors cursor-pointer ${
+                        selectedFinancing === financing ? 'bg-primary/10 border-l-4 border-primary' : ''
+                      }`}
+                      onClick={() => setSelectedFinancing(financing)}
+                    >
                       <TableCell className="font-medium">
                         <Badge variant="outline" className="text-xs">
                           {financing}
@@ -211,80 +248,103 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
           </div>
         )}
 
-        {/* Tableau détaillé par typologie */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Home className="w-5 h-5 text-primary" />
-            Détail par typologie
-          </h3>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Typologie</TableHead>
-                  <TableHead className="text-right font-semibold">Nombre</TableHead>
-                  <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
-                  <TableHead className="text-right font-semibold">SU (m²)</TableHead>
-                  <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
-                  <TableHead className="text-right font-semibold">Loyer retenu (€/m²)</TableHead>
-                  <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {typologyData.map((row, index) => (
-                  <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {row.Type}
-                        </Badge>
-                        {row.Designation}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
+        {/* Tableau détaillé par typologie - contextuel */}
+        {selectedFinancing && filteredTypologyData.length > 0 && (
+          <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Home className="w-5 h-5 text-primary" />
+              Détail des typologies - {selectedFinancing}
+              <Badge variant="secondary" className="ml-2">
+                {filteredTotals.Nb} logement{filteredTotals.Nb > 1 ? 's' : ''}
+              </Badge>
+            </h3>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Typologie</TableHead>
+                    <TableHead className="text-right font-semibold">Nombre</TableHead>
+                    <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">SU (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Loyer retenu (€/m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTypologyData.map((row, index) => (
+                    <TableRow key={index} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {row.Type}
+                          </Badge>
+                          {row.Designation}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        <div className="flex items-center justify-end gap-1">
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          {row.Nb}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{row.Shab.toFixed(1)}</TableCell>
+                      <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
+                      <TableCell className="text-right">{(row.Su - row.Shab).toFixed(1)}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {row.LRetModule.toFixed(2)} €
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-primary/10 font-semibold border-t-2 border-primary/30">
+                    <TableCell className="font-bold">TOTAL - {selectedFinancing}</TableCell>
+                    <TableCell className="text-right font-bold">
                       <div className="flex items-center justify-end gap-1">
-                        <Users className="w-3 h-3 text-muted-foreground" />
-                        {row.Nb}
+                        <Users className="w-3 h-3 text-primary" />
+                        {filteredTotals.Nb}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{row.Shab.toFixed(1)}</TableCell>
-                    <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
-                    <TableCell className="text-right">{(row.Su - row.Shab).toFixed(1)}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {row.LRetModule.toFixed(2)} €
+                    <TableCell className="text-right font-bold">{filteredTotals.Shab.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-bold">{filteredTotals.Su.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-bold">
+                      {(filteredTotals.Su - filteredTotals.Shab).toFixed(1)}
                     </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    <TableCell className="text-right font-bold">
+                      {/* Calculer la moyenne pondérée des loyers retenus pour les données filtrées */}
+                      {filteredTypologyData.length > 0 ? 
+                        (filteredTypologyData.reduce((sum, row) => sum + (row.LRetModule * row.Su), 0) / filteredTotals.Su).toFixed(2) 
+                        : '0.00'} €
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-primary">
+                      {filteredTotals.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                     </TableCell>
                   </TableRow>
-                ))}
-                <TableRow className="bg-primary/5 font-semibold border-t-2 border-primary/20">
-                  <TableCell className="font-bold">TOTAL</TableCell>
-                  <TableCell className="text-right font-bold">
-                    <div className="flex items-center justify-end gap-1">
-                      <Users className="w-3 h-3 text-primary" />
-                      {totals.total.Nb}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-bold">{totals.total.Shab.toFixed(1)}</TableCell>
-                  <TableCell className="text-right font-bold">{totals.total.Su.toFixed(1)}</TableCell>
-                  <TableCell className="text-right font-bold">
-                    {(totals.total.Su - totals.total.Shab).toFixed(1)}
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {/* Calculer la moyenne pondérée des loyers retenus */}
-                    {typologyData.length > 0 ? 
-                      (typologyData.reduce((sum, row) => sum + (row.LRetModule * row.Su), 0) / totals.total.Su).toFixed(2) 
-                      : '0.00'} €
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-primary">
-                    {totals.total.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => setSelectedFinancing(null)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Fermer le détail
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Message si aucune sélection */}
+        {!selectedFinancing && Object.keys(financingTotals).length > 0 && (
+          <div className="mt-6 p-4 border border-dashed border-muted-foreground/30 rounded-lg text-center">
+            <Home className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+            <p className="text-muted-foreground text-sm">
+              Sélectionnez une nature de financement ci-dessus pour voir le détail des typologies
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
