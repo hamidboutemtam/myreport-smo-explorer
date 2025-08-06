@@ -37,7 +37,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2, Search } from 'lucide-react';
+import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2, Search, MapPin, Calendar, User, Hash } from 'lucide-react';
 import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
@@ -292,6 +292,16 @@ const Dashboard = () => {
     };
   };
 
+  // Get the most recent modification date for an operation
+  const getMostRecentDate = (operation: Operation) => {
+    if (!operation.simulations || operation.simulations.length === 0) return null;
+    const dates = operation.simulations
+      .map(sim => sim.datemodif ? new Date(sim.datemodif) : null)
+      .filter(Boolean)
+      .sort((a, b) => b!.getTime() - a!.getTime());
+    return dates[0] || null;
+  };
+
   return (
     <Layout>
       <div className="layout-container">
@@ -499,22 +509,79 @@ const Dashboard = () => {
             <>
               {Object.entries(paginatedGroupedOperations).map(([label, operations]) => {
                 const operationType = getOperationType(label);
+                const firstOperation = operations[0];
+                const totalSimulations = operations.reduce((total, op) => total + (op.simulations?.length || 0), 0);
+                const mostRecentDate = getMostRecentDate(firstOperation);
+                
                 return (
                   <Card key={label} className="data-card overflow-hidden">
-                  <CardHeader className="bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{label}</CardTitle>
-                        <CardDescription>
-                          {operations.reduce((total, op) => total + (op.simulations?.length || 0), 0)} simulation{operations.reduce((total, op) => total + (op.simulations?.length || 0), 0) !== 1 ? 's' : ''}
-                        </CardDescription>
+                    <CardHeader className="bg-gray-50 space-y-4">
+                      {/* Titre et badge type */}
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold">{label}</CardTitle>
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${operationType.color}`}>
+                          <operationType.icon className="h-4 w-4" />
+                          <span>{operationType.type}</span>
+                        </div>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${operationType.color}`}>
-                        <operationType.icon className="h-4 w-4" />
-                        <span>{operationType.type}</span>
+                      
+                      {/* Informations détaillées */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        {/* Adresse et localisation */}
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {firstOperation.adresseoperation || 'Adresse non renseignée'}
+                            </div>
+                            <div className="text-gray-600">
+                              {firstOperation.commune || 'Commune non renseignée'}
+                              {firstOperation.departement && ` (${firstOperation.departement})`}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Date de modification */}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <div>
+                            <div className="text-gray-600">Dernière modification</div>
+                            <div className="font-medium text-gray-900">
+                              {mostRecentDate ? 
+                                mostRecentDate.toLocaleDateString('fr-FR', { 
+                                  day: '2-digit', 
+                                  month: '2-digit', 
+                                  year: 'numeric' 
+                                }) : 
+                                'Non renseignée'
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Responsable budgétaire */}
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <div>
+                            <div className="text-gray-600">Responsable</div>
+                            <div className="font-medium text-gray-900">
+                              {firstOperation.responsable || 'Non renseigné'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Nombre de simulations */}
+                        <div className="flex items-center gap-2">
+                          <Hash className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <div>
+                            <div className="text-gray-600">Simulations</div>
+                            <div className="font-medium text-gray-900">
+                              {totalSimulations} simulation{totalSimulations !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <Table>
