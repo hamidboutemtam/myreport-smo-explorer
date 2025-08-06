@@ -9,10 +9,12 @@ interface FinancementData {
   Code_Projet: string;
   Code_Simulation: string;
   Code_Programme: string;
-  FondsPropres?: number;
-  Subventions?: number;
-  Prets?: number;
-  Total?: number;
+  Code: string;
+  Libelle: string;
+  Hierarchie: number;
+  Valeur_HT: number;
+  TypeSubvention: string;
+  TypeEmprunt: string;
 }
 
 interface FinancementTableRow {
@@ -74,13 +76,38 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
     );
   }
 
-  // Calcul des données pour le tableau
-  const financementTable: FinancementTableRow[] = financementData.map(item => ({
-    chapter: item.Code_Programme || 'Programme principal',
-    fondsPropres: item.FondsPropres || 0,
-    subventions: item.Subventions || 0,
-    prets: item.Prets || 0,
-    total: item.Total || 0
+  // Regrouper les données par programme et par type de financement
+  const groupedData = financementData.reduce((acc, item) => {
+    const programme = item.Code_Programme;
+    if (!acc[programme]) {
+      acc[programme] = {
+        fondsPropres: 0,
+        subventions: 0,
+        prets: 0,
+        total: 0
+      };
+    }
+    
+    // Classifier selon le code et la hiérarchie
+    if (item.Code.includes('FONDS_PROPRES') || item.Code.includes('APPORT')) {
+      acc[programme].fondsPropres += item.Valeur_HT;
+    } else if (item.Code.includes('SUBV') || item.Libelle.toLowerCase().includes('subvention')) {
+      acc[programme].subventions += item.Valeur_HT;
+    } else if (item.Code.includes('PRET') || item.Libelle.toLowerCase().includes('prêt')) {
+      acc[programme].prets += item.Valeur_HT;
+    }
+    
+    acc[programme].total += item.Valeur_HT;
+    return acc;
+  }, {} as Record<string, { fondsPropres: number; subventions: number; prets: number; total: number }>);
+
+  // Convertir en tableau pour l'affichage
+  const financementTable: FinancementTableRow[] = Object.entries(groupedData).map(([programme, data]) => ({
+    chapter: programme,
+    fondsPropres: data.fondsPropres,
+    subventions: data.subventions,
+    prets: data.prets,
+    total: data.total
   }));
 
   const handleRatioClick = (ratioType: string) => {
