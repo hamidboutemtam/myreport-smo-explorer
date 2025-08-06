@@ -522,59 +522,50 @@ const OperationDetail = () => {
                       <Table className="table-compact">
                         <TableHeader>
                           <TableRow className="bg-green-100/50 h-8">
-                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type de surface</TableHead>
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
                             {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
-                                {financing}
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px] text-xs py-2 px-2">
+                                <div>{financing}</div>
+                                <div className="text-[10px] text-gray-500 font-normal mt-1">SHAB / Annexes / SU</div>
                               </TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {/* Surface Habitable */}
-                          <TableRow className="bg-white h-8">
-                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Surface habitable (m²)</TableCell>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={`h-12 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
+                              {financingTypes.map(financing => {
+                                const shab = row.byFinancement[financing]?.Shab || 0;
+                                const su = row.byFinancement[financing]?.Su || 0;
+                                const annexes = su - shab;
+                                
+                                return (
+                                  <TableCell key={financing} className="text-center text-xs py-1 px-2">
+                                    <div className="flex flex-col gap-0.5">
+                                      <div className="text-orange-700 font-medium">{shab.toFixed(1)}</div>
+                                      <div className="text-gray-600">{annexes.toFixed(1)}</div>
+                                      <div className="text-green-700 font-medium">{su.toFixed(1)}</div>
+                                    </div>
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200 h-12">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3">Total</TableCell>
                             {financingTypes.map(financing => {
-                              const totalShab = Object.values(groupedData).reduce((sum: number, row: any) => 
-                                sum + (row.byFinancement[financing]?.Shab || 0), 0
-                              ) as number;
+                              const totalShab = totals.byFinancement[financing]?.Shab || 0;
+                              const totalSu = totals.byFinancement[financing]?.Su || 0;
+                              const totalAnnexes = totalSu - totalShab;
+                              
                               return (
-                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {totalShab.toFixed(1)}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-
-                          {/* Total des annexes */}
-                          <TableRow className="bg-gray-50/50 h-8">
-                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Total annexes (m²)</TableCell>
-                            {financingTypes.map(financing => {
-                              const totalSu = Object.values(groupedData).reduce((sum: number, row: any) => 
-                                sum + (row.byFinancement[financing]?.Su || 0), 0
-                              ) as number;
-                              const totalShab = Object.values(groupedData).reduce((sum: number, row: any) => 
-                                sum + (row.byFinancement[financing]?.Shab || 0), 0
-                              ) as number;
-                              const annexes = totalSu - totalShab;
-                              return (
-                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {annexes.toFixed(1)}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-
-                          {/* Surface Utile */}
-                          <TableRow className="bg-white h-8">
-                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Surface utile (m²)</TableCell>
-                            {financingTypes.map(financing => {
-                              const totalSu = Object.values(groupedData).reduce((sum: number, row: any) => 
-                                sum + (row.byFinancement[financing]?.Su || 0), 0
-                              ) as number;
-                              return (
-                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {totalSu.toFixed(1)}
+                                <TableCell key={financing} className="text-center text-xs py-1 px-2">
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="text-orange-700 font-semibold">{totalShab.toFixed(1)}</div>
+                                    <div className="text-gray-700 font-semibold">{totalAnnexes.toFixed(1)}</div>
+                                    <div className="text-green-700 font-semibold">{totalSu.toFixed(1)}</div>
+                                  </div>
                                 </TableCell>
                               );
                             })}
