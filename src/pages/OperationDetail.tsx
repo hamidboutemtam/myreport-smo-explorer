@@ -148,6 +148,7 @@ const OperationDetail = () => {
       
       const data = await response.json();
       console.log('Prix de revient data received:', data);
+      console.log('Prix de revient array length:', data.value?.length || 0);
       setPrixRevientData(data.value || []);
     } catch (error) {
       console.error('Error fetching prix de revient data:', error);
@@ -270,7 +271,11 @@ const OperationDetail = () => {
 
   // Prix de revient calculations
   const calculatePrixRevientChart = () => {
-    if (!prixRevientData || prixRevientData.length === 0) return [];
+    console.log('Calculating prix revient chart with data:', prixRevientData);
+    if (!prixRevientData || prixRevientData.length === 0) {
+      console.log('No prix revient data available for chart');
+      return [];
+    }
     
     // Grouper les montants par libellé (grands chapitres niveau 1)
     const chapitres = prixRevientData.reduce((acc, item) => {
@@ -281,26 +286,39 @@ const OperationDetail = () => {
       return acc;
     }, {} as { [key: string]: number });
 
-    const total = Object.values(chapitres).reduce((a, b) => a + b, 0);
+    console.log('Chapitres groupés:', chapitres);
 
-    return Object.entries(chapitres)
+    const total = Object.values(chapitres).reduce((a, b) => a + b, 0);
+    console.log('Total prix revient:', total);
+
+    const result = Object.entries(chapitres)
       .filter(([_, value]) => value > 0)
       .map(([name, value]) => ({
         name,
         value,
         percentage: total > 0 ? ((value / total) * 100).toFixed(1) : '0'
       }));
+    
+    console.log('Chart data result:', result);
+    return result;
   };
 
   const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   const getPrixRevientTableData = () => {
-    if (!prixRevientData || prixRevientData.length === 0) return [];
+    console.log('Calculating prix revient table with data:', prixRevientData);
+    if (!prixRevientData || prixRevientData.length === 0) {
+      console.log('No prix revient data available for table');
+      return [];
+    }
     
     const programmes = [...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))];
     const chapitres = [...new Set(prixRevientData.map(item => item.Libelle))];
+    
+    console.log('Programmes:', programmes);
+    console.log('Chapitres:', chapitres);
 
-    return chapitres.map(chapitre => {
+    const result = chapitres.map(chapitre => {
       const row: any = { chapitre };
       programmes.forEach(programme => {
         const items = prixRevientData.filter(d => 
@@ -316,6 +334,9 @@ const OperationDetail = () => {
       
       return row;
     }).filter(row => row.total > 0); // Ne garder que les lignes avec des montants
+    
+    console.log('Table data result:', result);
+    return result;
   };
 
   const totals = calculateTotals();
