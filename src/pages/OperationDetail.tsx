@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin, Euro, Users, Square } from 'lucide-react';
+import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin, Euro, Users, Square, Clock, User, MessageCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TypologyData {
@@ -28,6 +28,10 @@ interface Simulation {
   LibelleSimulation: string;
   DateCreation: string;
   DateModif: string;
+  DateValeur?: string;
+  Etape?: string;
+  Proprietaire?: string;
+  Commentaire?: string;
 }
 
 const OperationDetail = () => {
@@ -70,7 +74,11 @@ const OperationDetail = () => {
             Code_Simulation: curr.Code_Simulation,
             LibelleSimulation: curr.LibelleSimulation,
             DateCreation: curr.DateCreation,
-            DateModif: curr.DateModif
+            DateModif: curr.DateModif,
+            DateValeur: curr.DateValeur,
+            Etape: curr.Etape,
+            Proprietaire: curr.Proprietaire,
+            Commentaire: curr.Commentaire || curr.LibelleSimulation
           });
         }
         return acc;
@@ -197,6 +205,28 @@ const OperationDetail = () => {
     setShowDetails(true);
   };
 
+  const getSelectedSimulationDetails = () => {
+    return simulations.find(sim => sim.Code_Simulation === selectedSimulation);
+  };
+
+  const getEtapeColor = (etape?: string) => {
+    if (!etape) return 'bg-gray-100 text-gray-600';
+    const etapeLower = etape.toLowerCase();
+    if (etapeLower.includes('engagement définitif') || etapeLower.includes('definitif')) {
+      return 'bg-green-100 text-green-700 border-green-200';
+    }
+    if (etapeLower.includes('engagement conditionnel') || etapeLower.includes('conditionnel')) {
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+    if (etapeLower.includes('dce') || etapeLower.includes('appel')) {
+      return 'bg-blue-100 text-blue-700 border-blue-200';
+    }
+    if (etapeLower.includes('aps') || etapeLower.includes('apd')) {
+      return 'bg-purple-100 text-purple-700 border-purple-200';
+    }
+    return 'bg-gray-100 text-gray-600 border-gray-200';
+  };
+
   const totals = calculateTotals();
 
   if (!operationId) {
@@ -259,12 +289,12 @@ const OperationDetail = () => {
           </Card>
         )}
 
-        {/* Sélecteur de simulation */}
+        {/* Sélecteur de simulation avec détails */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Sélection de simulation</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <Select value={selectedSimulation} onValueChange={setSelectedSimulation}>
@@ -274,10 +304,10 @@ const OperationDetail = () => {
                   <SelectContent>
                     {simulations.map((simulation) => (
                       <SelectItem key={simulation.Code_Simulation} value={simulation.Code_Simulation}>
-                        <div className="flex flex-col">
-                          <span>{simulation.LibelleSimulation}</span>
+                        <div className="flex flex-col py-1">
+                          <span className="font-medium">{simulation.LibelleSimulation}</span>
                           <span className="text-xs text-gray-500">
-                            Modifié le {new Date(simulation.DateModif).toLocaleDateString()}
+                            Modifié le {new Date(simulation.DateModif).toLocaleDateString('fr-FR')}
                           </span>
                         </div>
                       </SelectItem>
@@ -295,6 +325,65 @@ const OperationDetail = () => {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
+
+            {/* Détails de la simulation sélectionnée */}
+            {selectedSimulation && getSelectedSimulationDetails() && (
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 animate-fade-in">
+                <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  Détails de la simulation
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Date de valeur */}
+                  <div className="bg-white rounded-md p-3 border border-slate-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-4 h-4 text-blue-500" />
+                      <span className="text-xs font-medium text-slate-600">Date de valeur</span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {getSelectedSimulationDetails()?.DateValeur ? 
+                        new Date(getSelectedSimulationDetails()!.DateValeur!).toLocaleDateString('fr-FR') : 
+                        'Non renseignée'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Étape */}
+                  <div className="bg-white rounded-md p-3 border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-orange-500" />
+                      <span className="text-xs font-medium text-slate-600">Étape</span>
+                    </div>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getEtapeColor(getSelectedSimulationDetails()?.Etape)}`}>
+                      {getSelectedSimulationDetails()?.Etape || 'Non définie'}
+                    </div>
+                  </div>
+
+                  {/* Dernier utilisateur */}
+                  <div className="bg-white rounded-md p-3 border border-slate-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="w-4 h-4 text-green-500" />
+                      <span className="text-xs font-medium text-slate-600">Propriétaire</span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {getSelectedSimulationDetails()?.Proprietaire || 'Non renseigné'}
+                    </p>
+                  </div>
+
+                  {/* Commentaire */}
+                  <div className="bg-white rounded-md p-3 border border-slate-200 md:col-span-2 lg:col-span-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <MessageCircle className="w-4 h-4 text-purple-500" />
+                      <span className="text-xs font-medium text-slate-600">Description</span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      {getSelectedSimulationDetails()?.Commentaire || 'Aucune description'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
