@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, FileJson, FileSpreadsheet, RefreshCw } from 'lucide-react';
+import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2 } from 'lucide-react';
 import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
@@ -197,23 +197,40 @@ const Dashboard = () => {
   };
 
   // Determine operation type based on label keywords
-  const getOperationType = (libelle: string): { type: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+  const getOperationType = (libelle: string): { type: string; icon: any; color: string } => {
     const libelleLower = libelle.toLowerCase();
     
-    if (libelleLower.includes('construction') || libelleLower.includes('neuve') || libelleLower.includes('neuf')) {
-      return { type: 'Construction neuve', variant: 'default' };
-    }
-    
     if (libelleLower.includes('résidence sociale') || libelleLower.includes('social') || libelleLower.includes('hlm')) {
-      return { type: 'Résidence sociale', variant: 'secondary' };
+      return { 
+        type: 'Résidence sociale', 
+        icon: Users, 
+        color: 'text-blue-600 bg-blue-50' 
+      };
     }
     
     if (libelleLower.includes('réhabilitation') || libelleLower.includes('renovation') || libelleLower.includes('rénovation')) {
-      return { type: 'Réhabilitation', variant: 'destructive' };
+      return { 
+        type: 'Réhabilitation', 
+        icon: Wrench, 
+        color: 'text-orange-600 bg-orange-50' 
+      };
     }
     
-    // Default fallback
-    return { type: 'Autre', variant: 'outline' };
+    // Default to construction neuve (includes explicit matches and fallback)
+    if (libelleLower.includes('construction') || libelleLower.includes('neuve') || libelleLower.includes('neuf')) {
+      return { 
+        type: 'Construction neuve', 
+        icon: Building, 
+        color: 'text-green-600 bg-green-50' 
+      };
+    }
+    
+    // Fallback is now construction neuve
+    return { 
+      type: 'Construction neuve', 
+      icon: Building2, 
+      color: 'text-green-600 bg-green-50' 
+    };
   };
 
   return (
@@ -376,9 +393,10 @@ const Dashboard = () => {
                     <CardHeader className="bg-gray-50">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{label}</CardTitle>
-                        <Badge variant={operationType.variant} className="ml-2">
-                          {operationType.type}
-                        </Badge>
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${operationType.color}`}>
+                          <operationType.icon className="h-4 w-4" />
+                          <span>{operationType.type}</span>
+                        </div>
                       </div>
                     </CardHeader>
                   <CardContent className="p-0">
