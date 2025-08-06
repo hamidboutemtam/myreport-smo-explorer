@@ -314,6 +314,7 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                           </Badge>
                         </TableHead>
                       ))}
+                      <TableHead className="text-center font-semibold bg-primary/20">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -329,6 +330,9 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                           )}
                         </TableCell>
                       ))}
+                      <TableCell className="text-center font-semibold bg-primary/10">
+                        {detailedData.reduce((sum, row) => sum + row.details.fondsPropres, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                      </TableCell>
                     </TableRow>
                     <TableRow className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium text-green-600">Subventions</TableCell>
@@ -342,6 +346,9 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                           )}
                         </TableCell>
                       ))}
+                      <TableCell className="text-center font-semibold bg-primary/10">
+                        {detailedData.reduce((sum, row) => sum + row.details.subventions, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                      </TableCell>
                     </TableRow>
                     <TableRow className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium text-purple-600">Prêts</TableCell>
@@ -355,6 +362,9 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                           )}
                         </TableCell>
                       ))}
+                      <TableCell className="text-center font-semibold bg-primary/10">
+                        {detailedData.reduce((sum, row) => sum + row.details.prets, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                      </TableCell>
                     </TableRow>
                     <TableRow className="hover:bg-muted/30 transition-colors bg-primary/10">
                       <TableCell className="font-bold">Total</TableCell>
@@ -363,6 +373,9 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                           {row.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {row.unit}
                         </TableCell>
                       ))}
+                      <TableCell className="text-center font-bold bg-primary/20">
+                        {detailedData.reduce((sum, row) => sum + row.value, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {detailedData[0]?.unit || '€'}
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
