@@ -353,7 +353,7 @@ const Dashboard = () => {
                   <CardHeader className="bg-gray-50">
                     <CardTitle className="text-lg">{label}</CardTitle>
                     <CardDescription>
-                      {operations.length} opération{operations.length !== 1 ? 's' : ''}
+                      {operations.reduce((total, op) => total + (op.simulations?.length || 0), 0)} simulation{operations.reduce((total, op) => total + (op.simulations?.length || 0), 0) !== 1 ? 's' : ''}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
