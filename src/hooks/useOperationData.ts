@@ -72,8 +72,10 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
+      const encodedProject = encodeURIComponent(operationId);
+      const encodedSimulation = encodeURIComponent(selectedSimulation);
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${encodedProject}' and Code_Simulation eq '${encodedSimulation}'`,
         { headers: getAuthHeader() }
       );
       
@@ -93,8 +95,10 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
+      const encodedProject = encodeURIComponent(operationId);
+      const encodedSimulation = encodeURIComponent(selectedSimulation);
       const response = await fetch(
-        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`,
+        `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${encodedProject}' and Code_Simulation eq '${encodedSimulation}'`,
         { headers: getAuthHeader() }
       );
       
