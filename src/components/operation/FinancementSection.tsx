@@ -4,6 +4,7 @@ import { Calculator, Euro } from 'lucide-react';
 import { TypologyTotals } from '@/types/operation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface FinancementData {
   Code_Projet: string;
@@ -283,7 +284,7 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
           </div>
         </div>
 
-        {/* Tableau détaillé par nature de financement */}
+        {/* Tableau détaillé par nature de financement avec camembert */}
         {selectedRatio && detailedData.length > 0 && (
           <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between mb-4">
@@ -298,56 +299,126 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                 Fermer
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Nature de financement</TableHead>
-                    <TableHead className="text-right font-semibold">Fonds propres</TableHead>
-                    <TableHead className="text-right font-semibold">Subventions</TableHead>
-                    <TableHead className="text-right font-semibold">Prêts</TableHead>
-                    <TableHead className="text-right font-semibold">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {detailedData.map((row, index) => (
-                    <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-medium">
-                        <Badge variant="outline" className="text-xs">
-                          {row.programme}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.fondsPropres.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.subventions.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.prets.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {row.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {row.unit}
-                      </TableCell>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Tableau transposé (compact) */}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Type de financement</TableHead>
+                      {detailedData.map((row, index) => (
+                        <TableHead key={index} className="text-center font-semibold">
+                          <Badge variant="outline" className="text-xs">
+                            {row.programme}
+                          </Badge>
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-blue-600">Fonds propres</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.fondsPropres.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-green-600">Subventions</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.subventions.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-purple-600">Prêts</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.prets.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors bg-primary/10">
+                      <TableCell className="font-bold">Total</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center font-bold">
+                          {row.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {row.unit}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Camembert */}
+              <div className="flex flex-col">
+                <h4 className="text-md font-semibold mb-4 text-center">Répartition du financement total</h4>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={(() => {
+                          const totalFondsPropres = detailedData.reduce((sum, row) => sum + row.details.fondsPropres, 0);
+                          const totalSubventions = detailedData.reduce((sum, row) => sum + row.details.subventions, 0);
+                          const totalPrets = detailedData.reduce((sum, row) => sum + row.details.prets, 0);
+                          
+                          return [
+                            { name: 'Fonds propres', value: totalFondsPropres, color: '#3B82F6' },
+                            { name: 'Subventions', value: totalSubventions, color: '#10B981' },
+                            { name: 'Prêts', value: totalPrets, color: '#8B5CF6' }
+                          ].filter(item => item.value > 0);
+                        })()}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {(() => {
+                          const totalFondsPropres = detailedData.reduce((sum, row) => sum + row.details.fondsPropres, 0);
+                          const totalSubventions = detailedData.reduce((sum, row) => sum + row.details.subventions, 0);
+                          const totalPrets = detailedData.reduce((sum, row) => sum + row.details.prets, 0);
+                          
+                          return [
+                            { name: 'Fonds propres', value: totalFondsPropres, color: '#3B82F6' },
+                            { name: 'Subventions', value: totalSubventions, color: '#10B981' },
+                            { name: 'Prêts', value: totalPrets, color: '#8B5CF6' }
+                          ].filter(item => item.value > 0);
+                        })().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number) => [
+                          `${value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €`,
+                          'Montant'
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
         )}
