@@ -38,6 +38,8 @@ const OperationDetail = () => {
   const [selectedSimulation, setSelectedSimulation] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [operationInfo, setOperationInfo] = useState<any>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState('logements');
 
   const getAuthHeader = () => {
     const credentials = btoa('ADM:ADM');
@@ -190,6 +192,11 @@ const OperationDetail = () => {
     return totals;
   };
 
+  const handleCardClick = (tabName: string) => {
+    setActiveTab(tabName);
+    setShowDetails(true);
+  };
+
   const totals = calculateTotals();
 
   if (!operationId) {
@@ -303,7 +310,10 @@ const OperationDetail = () => {
             <CardContent>
               {/* Étiquettes récapitulatives */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div 
+                  className="bg-blue-50 rounded-lg p-4 border border-blue-200 cursor-pointer hover:shadow-md hover:bg-blue-100 transition-all duration-200"
+                  onClick={() => handleCardClick('logements')}
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-blue-500 rounded-full p-2">
                       <Users className="w-5 h-5 text-white" />
@@ -311,11 +321,15 @@ const OperationDetail = () => {
                     <div>
                       <p className="text-sm text-blue-600 font-medium">Total Logements</p>
                       <p className="text-2xl font-bold text-blue-900">{totals.total.Nb}</p>
+                      <p className="text-xs text-blue-500">Cliquez pour voir le détail</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <div 
+                  className="bg-green-50 rounded-lg p-4 border border-green-200 cursor-pointer hover:shadow-md hover:bg-green-100 transition-all duration-200"
+                  onClick={() => handleCardClick('surfaces')}
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-green-500 rounded-full p-2">
                       <Square className="w-5 h-5 text-white" />
@@ -326,13 +340,16 @@ const OperationDetail = () => {
                         {totals.total.Shab.toFixed(0)} m²
                       </p>
                       <p className="text-xs text-green-600">
-                        SU: {totals.total.Su.toFixed(0)} m²
+                        SU: {totals.total.Su.toFixed(0)} m² • Cliquez pour voir le détail
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <div 
+                  className="bg-purple-50 rounded-lg p-4 border border-purple-200 cursor-pointer hover:shadow-md hover:bg-purple-100 transition-all duration-200"
+                  onClick={() => handleCardClick('loyers')}
+                >
                   <div className="flex items-center gap-3">
                     <div className="bg-purple-500 rounded-full p-2">
                       <Euro className="w-5 h-5 text-white" />
@@ -342,18 +359,20 @@ const OperationDetail = () => {
                       <p className="text-2xl font-bold text-purple-900">
                         {totals.total.LoyerMensuel.toFixed(0)} €
                       </p>
-                      <p className="text-xs text-purple-600">par mois</p>
+                      <p className="text-xs text-purple-600">par mois • Cliquez pour voir le détail</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <Tabs defaultValue="logements" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="logements" className="flex items-center gap-2">
-                    <Home className="w-4 h-4" />
-                    Nombre de logements
-                  </TabsTrigger>
+              {/* Onglets - Affichés seulement si showDetails est true */}
+              {showDetails && (
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsTrigger value="logements" className="flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      Nombre de logements
+                    </TabsTrigger>
                   <TabsTrigger value="surfaces" className="flex items-center gap-2">
                     <Ruler className="w-4 h-4" />
                     Surfaces
@@ -584,8 +603,9 @@ const OperationDetail = () => {
                       </Table>
                     </div>
                   </div>
-                </TabsContent>
-              </Tabs>
+                  </TabsContent>
+                </Tabs>
+              )}
             </CardContent>
           </Card>
         )}
