@@ -98,78 +98,30 @@ export const useOperationData = (operationId: string | undefined) => {
     if (!operationId || !selectedSimulation) return;
 
     try {
-      console.log('🔍 Fetching typology data for simulation:', selectedSimulation);
+      console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // D'abord, découvrir quels axes existent
-      try {
-        console.log('🔍 Discovering available axes...');
-        const axesResponse = await fetch('http://localhost:8000/AccessionRV/api/reporting/axes', { 
-          headers: getAuthHeader() 
-        });
-        
-        if (axesResponse.ok) {
-          const axesData = await axesResponse.json();
-          console.log('📋 Available axes:', axesData);
-          
-          // Chercher les axes liés à la typologie
-          const typologyAxes = axesData.value?.filter((axis: any) => 
-            axis.name?.toLowerCase().includes('typo') || 
-            axis.name?.toLowerCase().includes('typologie')
-          ) || [];
-          
-          console.log('🎯 Found potential typology axes:', typologyAxes);
-          
-          // Essayer chaque axe trouvé
-          for (const axis of typologyAxes) {
-            try {
-              const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axis.name}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-              const allData = await fetchAllPages(baseUrl);
-              console.log(`✅ Successfully fetched typology data from axis: ${axis.name}`, allData);
-              setTypologyData(allData || []);
-              return;
-            } catch (axisError) {
-              console.log(`❌ Failed to fetch from axis ${axis.name}:`, axisError);
-              continue;
-            }
-          }
-        }
-      } catch (discoveryError) {
-        console.log('❌ Could not discover axes:', discoveryError);
-      }
+      // Utiliser l'axe correct pour la typologie
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
       
-      // Si la découverte échoue, essayer les URLs connues du code original
-      console.log('🔄 Trying fallback approach with known axes...');
-      const knownAxes = ['AXE_MON_SRTypo', 'AXE_MON_Typo', 'AXE_Typologie'];
-      
-      for (const axeName of knownAxes) {
-        try {
-          // Test si l'axe existe d'abord
-          const testResponse = await fetch(`http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}`, { 
-            headers: getAuthHeader() 
-          });
-          
-          if (testResponse.ok) {
-            console.log(`✅ Axis ${axeName} exists, fetching data...`);
-            const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-            const allData = await fetchAllPages(baseUrl);
-            console.log(`✅ Successfully fetched typology data from: ${axeName}`, allData);
-            setTypologyData(allData || []);
-            return;
-          } else {
-            console.log(`❌ Axis ${axeName} does not exist (${testResponse.status})`);
-          }
-        } catch (axisError) {
-          console.log(`❌ Error testing axis ${axeName}:`, axisError);
-          continue;
-        }
-      }
-      
-      console.log('❌ No working typology axes found');
-      setTypologyData([]);
-      
+      console.log('Typology data received:', allData);
+      setTypologyData(allData || []);
     } catch (error) {
-      console.error('❌ Critical error in fetchTypologyData:', error);
-      setTypologyData([]);
+      console.error('Error fetching typology data:', error);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered typology data:', filteredData);
+        setTypologyData(filteredData || []);
+      } catch (retryError) {
+        console.error('Retry failed:', retryError);
+        setTypologyData([]);
+      }
     }
   };
 
@@ -177,80 +129,30 @@ export const useOperationData = (operationId: string | undefined) => {
     if (!operationId || !selectedSimulation) return;
 
     try {
-      console.log('💰 Fetching prix de revient data for simulation:', selectedSimulation);
+      console.log('Fetching prix de revient data for simulation:', selectedSimulation);
       
-      // D'abord, découvrir quels axes existent
-      try {
-        console.log('🔍 Discovering available axes for prix de revient...');
-        const axesResponse = await fetch('http://localhost:8000/AccessionRV/api/reporting/axes', { 
-          headers: getAuthHeader() 
-        });
-        
-        if (axesResponse.ok) {
-          const axesData = await axesResponse.json();
-          console.log('📋 Available axes:', axesData);
-          
-          // Chercher les axes liés au prix de revient
-          const prixAxes = axesData.value?.filter((axis: any) => 
-            axis.name?.toLowerCase().includes('prix') || 
-            axis.name?.toLowerCase().includes('revient') ||
-            axis.name?.toLowerCase().includes('budget') ||
-            axis.name?.toLowerCase().includes('cout')
-          ) || [];
-          
-          console.log('🎯 Found potential prix de revient axes:', prixAxes);
-          
-          // Essayer chaque axe trouvé
-          for (const axis of prixAxes) {
-            try {
-              const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axis.name}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-              const allData = await fetchAllPages(baseUrl);
-              console.log(`✅ Successfully fetched prix de revient data from axis: ${axis.name}`, allData);
-              setPrixRevientData(allData || []);
-              return;
-            } catch (axisError) {
-              console.log(`❌ Failed to fetch from axis ${axis.name}:`, axisError);
-              continue;
-            }
-          }
-        }
-      } catch (discoveryError) {
-        console.log('❌ Could not discover axes for prix de revient:', discoveryError);
-      }
+      // Utiliser l'axe correct pour le prix de revient
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrg?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
       
-      // Si la découverte échoue, essayer les URLs connues du code original
-      console.log('🔄 Trying fallback approach with known prix axes...');
-      const knownAxes = ['AXE_MON_SRPrixRev', 'AXE_MON_PrixRev', 'AXE_PrixRevient'];
-      
-      for (const axeName of knownAxes) {
-        try {
-          // Test si l'axe existe d'abord
-          const testResponse = await fetch(`http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}`, { 
-            headers: getAuthHeader() 
-          });
-          
-          if (testResponse.ok) {
-            console.log(`✅ Axis ${axeName} exists, fetching data...`);
-            const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-            const allData = await fetchAllPages(baseUrl);
-            console.log(`✅ Successfully fetched prix de revient data from: ${axeName}`, allData);
-            setPrixRevientData(allData || []);
-            return;
-          } else {
-            console.log(`❌ Axis ${axeName} does not exist (${testResponse.status})`);
-          }
-        } catch (axisError) {
-          console.log(`❌ Error testing axis ${axeName}:`, axisError);
-          continue;
-        }
-      }
-      
-      console.log('❌ No working prix de revient axes found');
-      setPrixRevientData([]);
-      
+      console.log('Prix de revient data received:', allData);
+      setPrixRevientData(allData || []);
     } catch (error) {
-      console.error('❌ Critical error in fetchPrixRevientData:', error);
-      setPrixRevientData([]);
+      console.error('Error fetching prix de revient data:', error);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying prix de revient without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrg?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered prix de revient data:', filteredData);
+        setPrixRevientData(filteredData || []);
+      } catch (retryError) {
+        console.error('Prix de revient retry failed:', retryError);
+        setPrixRevientData([]);
+      }
     }
   };
 
