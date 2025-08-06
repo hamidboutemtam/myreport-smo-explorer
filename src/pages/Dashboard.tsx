@@ -501,15 +501,20 @@ const Dashboard = () => {
                 const operationType = getOperationType(label);
                 return (
                   <Card key={label} className="data-card overflow-hidden">
-                    <CardHeader className="bg-gray-50">
-                      <div className="flex items-center justify-between">
+                  <CardHeader className="bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
                         <CardTitle className="text-lg">{label}</CardTitle>
-                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${operationType.color}`}>
-                          <operationType.icon className="h-4 w-4" />
-                          <span>{operationType.type}</span>
-                        </div>
+                        <CardDescription>
+                          {operations.reduce((total, op) => total + (op.simulations?.length || 0), 0)} simulation{operations.reduce((total, op) => total + (op.simulations?.length || 0), 0) !== 1 ? 's' : ''}
+                        </CardDescription>
                       </div>
-                    </CardHeader>
+                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${operationType.color}`}>
+                        <operationType.icon className="h-4 w-4" />
+                        <span>{operationType.type}</span>
+                      </div>
+                    </div>
+                  </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <Table>
