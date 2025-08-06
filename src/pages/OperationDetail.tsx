@@ -517,14 +517,12 @@ const OperationDetail = () => {
 
                 {/* Onglet Surfaces */}
                 <TabsContent value="surfaces" className="space-y-4 animate-fade-in">
-                  {/* Surface Utile */}
                   <div className="bg-green-50 rounded-lg p-3">
-                    <h4 className="font-semibold text-green-900 mb-2 text-sm">Surface Utile (m²)</h4>
                     <div className="overflow-x-auto">
                       <Table className="table-compact">
                         <TableHeader>
                           <TableRow className="bg-green-100/50 h-8">
-                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type de surface</TableHead>
                             {financingTypes.map(financing => (
                               <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
                                 {financing}
@@ -533,62 +531,53 @@ const OperationDetail = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
-                              {financingTypes.map(financing => (
+                          {/* Surface Habitable */}
+                          <TableRow className="bg-white h-8">
+                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Surface habitable (m²)</TableCell>
+                            {financingTypes.map(financing => {
+                              const totalShab = Object.values(groupedData).reduce((sum: number, row: any) => 
+                                sum + (row.byFinancement[financing]?.Shab || 0), 0
+                              ) as number;
+                              return (
                                 <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {(row.byFinancement[financing]?.Su || 0).toFixed(1)}
+                                  {totalShab.toFixed(1)}
                                 </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200 h-8">
-                            <TableCell className="text-gray-900 text-sm py-1 px-3">Surface totale</TableCell>
-                            {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center text-green-700 text-sm py-1 px-2">
-                                {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
-                              </TableCell>
-                            ))}
+                              );
+                            })}
                           </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
 
-                  {/* Surface Habitable */}
-                  <div className="bg-orange-50 rounded-lg p-3">
-                    <h4 className="font-semibold text-orange-900 mb-2 text-sm">Surface Habitable (m²)</h4>
-                    <div className="overflow-x-auto">
-                      <Table className="table-compact">
-                        <TableHeader>
-                          <TableRow className="bg-orange-100/50 h-8">
-                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
-                            {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
-                                {financing}
-                              </TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
-                              {financingTypes.map(financing => (
+                          {/* Total des annexes */}
+                          <TableRow className="bg-gray-50/50 h-8">
+                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Total annexes (m²)</TableCell>
+                            {financingTypes.map(financing => {
+                              const totalSu = Object.values(groupedData).reduce((sum: number, row: any) => 
+                                sum + (row.byFinancement[financing]?.Su || 0), 0
+                              ) as number;
+                              const totalShab = Object.values(groupedData).reduce((sum: number, row: any) => 
+                                sum + (row.byFinancement[financing]?.Shab || 0), 0
+                              ) as number;
+                              const annexes = totalSu - totalShab;
+                              return (
                                 <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {(row.byFinancement[financing]?.Shab || 0).toFixed(1)}
+                                  {annexes.toFixed(1)}
                                 </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                          <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200 h-8">
-                            <TableCell className="text-gray-900 text-sm py-1 px-3">Surface totale</TableCell>
-                            {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center text-orange-700 text-sm py-1 px-2">
-                                {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
-                              </TableCell>
-                            ))}
+                              );
+                            })}
+                          </TableRow>
+
+                          {/* Surface Utile */}
+                          <TableRow className="bg-white h-8">
+                            <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">Surface utile (m²)</TableCell>
+                            {financingTypes.map(financing => {
+                              const totalSu = Object.values(groupedData).reduce((sum: number, row: any) => 
+                                sum + (row.byFinancement[financing]?.Su || 0), 0
+                              ) as number;
+                              return (
+                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
+                                  {totalSu.toFixed(1)}
+                                </TableCell>
+                              );
+                            })}
                           </TableRow>
                         </TableBody>
                       </Table>
