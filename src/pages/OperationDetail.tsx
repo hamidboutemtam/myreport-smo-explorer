@@ -139,7 +139,8 @@ const OperationDetail = () => {
     
     try {
       console.log('Fetching prix de revient for:', { operationId, simulationCode });
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrgDetaillesCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}' and Hierarchie eq 1`;
+      // Test d'abord sans filtre Hierarchie pour voir toutes les données disponibles
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrgDetaillesCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}'`;
       console.log('Prix de revient API URL:', url);
       
       const response = await fetch(url, { headers: getAuthHeader() });
@@ -149,7 +150,30 @@ const OperationDetail = () => {
       const data = await response.json();
       console.log('Prix de revient data received:', data);
       console.log('Prix de revient array length:', data.value?.length || 0);
-      setPrixRevientData(data.value || []);
+      
+      // Log les hiérarchies disponibles pour debugging
+      if (data.value && data.value.length > 0) {
+        const hierarchies = [...new Set(data.value.map((item: any) => Number(item.Hierarchie)).filter(h => !isNaN(h)))];
+        console.log('Hiérarchies disponibles:', hierarchies);
+        
+        // Filtrer pour ne garder que Hierarchie = 1 si elle existe, sinon prendre le premier niveau
+        const filteredData = data.value.filter((item: any) => Number(item.Hierarchie) === 1);
+        if (filteredData.length > 0) {
+          console.log('Données avec Hierarchie=1:', filteredData);
+          setPrixRevientData(filteredData);
+        } else if (hierarchies.length > 0) {
+          // Si pas de Hierarchie=1, prendre le niveau le plus bas
+          const minHierarchie = Math.min(...hierarchies);
+          console.log('Pas de Hierarchie=1, utilisation du niveau', minHierarchie);
+          const fallbackData = data.value.filter((item: any) => Number(item.Hierarchie) === minHierarchie);
+          setPrixRevientData(fallbackData);
+        } else {
+          console.log('Aucune hiérarchie valide trouvée');
+          setPrixRevientData([]);
+        }
+      } else {
+        setPrixRevientData([]);
+      }
     } catch (error) {
       console.error('Error fetching prix de revient data:', error);
       toast.error('Erreur lors du chargement du prix de revient');
