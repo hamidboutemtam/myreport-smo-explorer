@@ -72,9 +72,13 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
-      // Construire l'URL avec le paramètre $filter correctement encodé
-      const filterParam = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?${encodeURIComponent('$filter')}=${encodeURIComponent(filterParam)}`;
+      console.log('Building URL for operation:', operationId, 'simulation:', selectedSimulation);
+      
+      // Pour OData, $filter doit rester non-encodé, seules les valeurs avec caractères spéciaux le sont
+      const filterClause = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=${filterClause}`;
+      
+      console.log('Constructed URL:', url);
       const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
@@ -96,9 +100,13 @@ export const useOperationData = (operationId: string | undefined) => {
 
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
-      // Construire l'URL avec le paramètre $filter correctement encodé
-      const filterParam = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?${encodeURIComponent('$filter')}=${encodeURIComponent(filterParam)}`;
+      console.log('Building URL for operation:', operationId, 'simulation:', selectedSimulation);
+      
+      // Pour OData, $filter doit rester non-encodé, seules les valeurs avec caractères spéciaux le sont
+      const filterClause = `Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=${filterClause}`;
+      
+      console.log('Constructed URL:', url);
       const response = await fetch(url, { headers: getAuthHeader() });
       
       if (!response.ok) {
