@@ -46,13 +46,11 @@ export const OperationHeader: React.FC<OperationHeaderProps> = ({
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
               <Building className="w-6 h-6 text-primary" />
-              Opération {operationId}
+              {operationInfo?.LibelleOperation || `Opération ${operationId}`}
             </h1>
-            {operationInfo && (
-              <p className="text-muted-foreground mt-1">
-                {operationInfo.LibelleOperation || 'Détails de l\'opération'}
-              </p>
-            )}
+            <p className="text-muted-foreground mt-1">
+              Code : {operationId}
+            </p>
           </div>
         </div>
         <Button
@@ -103,9 +101,12 @@ export const OperationHeader: React.FC<OperationHeaderProps> = ({
                 </Badge>
               </div>
               <div className="text-center p-3 bg-muted/30 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Date de création</p>
+                <p className="text-xs text-muted-foreground mb-1">Date de valeur</p>
                 <p className="text-sm font-medium">
-                  {new Date(selectedSimulationData.DateCreation).toLocaleDateString('fr-FR')}
+                  {selectedSimulationData.DateValeur ? 
+                    new Date(selectedSimulationData.DateValeur).toLocaleDateString('fr-FR') : 
+                    'Non définie'
+                  }
                 </p>
               </div>
               <div className="text-center p-3 bg-muted/30 rounded-lg">
