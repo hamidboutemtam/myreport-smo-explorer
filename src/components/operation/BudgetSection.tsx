@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calculator, PieChart, Euro } from 'lucide-react';
 import { PriceChart } from './PriceChart';
 import { PriceTable } from './PriceTable';
-import { PriceRatios } from './PriceRatios';
 import { PrixRevientData, PrixRevientTableRow, PrixRevientChartData, TypologyTotals } from '@/types/operation';
 
 interface BudgetSectionProps {
@@ -169,7 +168,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-8">
+          <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="graphique" className="text-xs">
               <PieChart className="w-3 h-3 mr-1" />
               Vue synthèse
@@ -177,10 +176,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
             <TabsTrigger value="detail" className="text-xs">
               <Calculator className="w-3 h-3 mr-1" />
               Détail
-            </TabsTrigger>
-            <TabsTrigger value="ratios" className="text-xs">
-              <Euro className="w-3 h-3 mr-1" />
-              Ratios
             </TabsTrigger>
           </TabsList>
 
@@ -218,9 +213,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
             <PriceTable data={prixRevientTable} selectedChapter={selectedChapter} />
           </TabsContent>
 
-          <TabsContent value="ratios" className="space-y-3 mt-4">
-            <PriceRatios prixRevientTable={prixRevientTable} totals={totals} />
-          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
