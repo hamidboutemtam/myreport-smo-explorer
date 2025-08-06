@@ -2,7 +2,7 @@
 import { Operation, OperationFilters, ExportOptions, ApiOperationData } from '@/types';
 
 // External API URL
-const API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
+const API_BASE_URL = 'http://host.docker.internal:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
 
 // Helper function to get basic auth header
 const getAuthHeader = () => {
