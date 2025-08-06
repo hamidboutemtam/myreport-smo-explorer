@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, FileJson, FileSpreadsheet } from 'lucide-react';
+import { Filter, X, FileJson, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import { getOperations, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
@@ -36,6 +36,7 @@ import Layout from '@/components/Layout';
 const Dashboard = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Chargement des données...');
   const [filters, setFilters] = useState<OperationFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -52,14 +53,18 @@ const Dashboard = () => {
   }, []);
 
   // Fetch operations with optional filters
-  const fetchOperations = async () => {
+  const fetchOperations = async (useCache: boolean = true) => {
     setLoading(true);
+    setLoadingMessage(useCache ? 'Vérification du cache...' : 'Récupération des données...');
+    
     try {
-      const data = await getOperations(filters);
+      const data = await getOperations(filters, !useCache);
       setOperations(data);
+      setLoadingMessage('Données chargées avec succès');
     } catch (error) {
       console.error('Error fetching operations:', error);
       toast.error('Erreur lors du chargement des opérations');
+      setLoadingMessage('Erreur de chargement');
     } finally {
       setLoading(false);
     }
@@ -188,8 +193,21 @@ const Dashboard = () => {
             })}
           </div>
           
-          <div className="text-sm text-gray-500">
-            {operations.length} opération{operations.length !== 1 ? 's' : ''} trouvée{operations.length !== 1 ? 's' : ''}
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => fetchOperations(false)}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Actualiser</span>
+            </Button>
+            
+            <div className="text-sm text-gray-500">
+              {operations.length} opération{operations.length !== 1 ? 's' : ''} trouvée{operations.length !== 1 ? 's' : ''}
+            </div>
           </div>
         </div>
         
@@ -266,8 +284,9 @@ const Dashboard = () => {
 
         {/* Operations data */}
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-smo-primary"></div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-smo-primary mb-4"></div>
+            <p className="text-gray-600 text-center">{loadingMessage}</p>
           </div>
         ) : (
           <>

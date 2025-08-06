@@ -1,6 +1,11 @@
 
 import { Operation, OperationFilters, ExportOptions, ApiOperationData } from '@/types';
 
+// Cache pour les données
+let operationsCache: Operation[] | null = null;
+let cacheTimestamp: number | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // External API URL
 const API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
 
@@ -95,8 +100,10 @@ const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
   let currentUrl = url;
   let pageCount = 1;
   
+  console.log('📡 Starting paginated fetch...');
+  
   while (currentUrl) {
-    console.log(`📄 Fetching page ${pageCount}:`, currentUrl);
+    console.log(`📄 Fetching page ${pageCount}...`);
     
     const response = await fetch(currentUrl, {
       method: 'GET',
@@ -111,7 +118,6 @@ const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
     const apiResponse = await response.json();
     const pageData: ApiOperationData[] = apiResponse.value || [];
     
-    console.log(`✅ Page ${pageCount} received: ${pageData.length} items`);
     allData = allData.concat(pageData);
     
     // Check for next page
@@ -128,25 +134,73 @@ const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
     }
   }
   
-  console.log(`📚 Total items fetched across ${pageCount} pages: ${allData.length}`);
+  console.log(`✅ Successfully fetched ${allData.length} items across ${pageCount} pages`);
   return allData;
 };
 
+// Check if cache is valid
+const isCacheValid = (): boolean => {
+  if (!operationsCache || !cacheTimestamp) return false;
+  return Date.now() - cacheTimestamp < CACHE_DURATION;
+};
+
 // Get operations with optional filters
-export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
-  console.log('🔍 Starting API call to:', API_BASE_URL);
-  console.log('🔑 Using headers:', getAuthHeader());
+export const getOperations = async (filters?: OperationFilters, forceRefresh: boolean = false): Promise<Operation[]> => {
+  console.log('🔍 Getting operations with filters:', filters);
+  
+  // Return cached data if valid and no force refresh
+  if (!forceRefresh && isCacheValid()) {
+    console.log('💾 Using cached data');
+    let operations = operationsCache!;
+    
+    // Apply filters to cached data
+    if (filters && Object.keys(filters).length > 0) {
+      operations = operations.filter(op => {
+        let match = true;
+        if (filters.libelleoperation) {
+          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
+        }
+        if (filters.commune) {
+          match = match && op.simulations.some(sim => 
+            sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
+          );
+        }
+        if (filters.annee) {
+          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        }
+        if (filters.departement) {
+          match = match && op.simulations.some(sim => sim.departement === filters.departement);
+        }
+        if (filters.status) {
+          match = match && op.simulations.some(sim => sim.status === filters.status);
+        }
+        return match;
+      });
+    }
+    
+    console.log('🎯 Returning filtered cached operations:', operations.length);
+    return operations;
+  }
+  
+  // Fetch fresh data
+  console.log('🔍 Starting fresh API call to:', API_BASE_URL);
   
   try {
     console.log('📡 Fetching all paginated data...');
     const allApiData = await fetchAllPages(API_BASE_URL);
     
     console.log('🔄 Transforming API data...');
-    let operations = transformApiData(allApiData);
-    console.log('🏗️ Transformed operations:', operations);
+    const allOperations = transformApiData(allApiData);
+    
+    // Update cache
+    operationsCache = allOperations;
+    cacheTimestamp = Date.now();
+    console.log('💾 Data cached successfully');
+    
+    let operations = allOperations;
     
     // Apply filters if provided
-    if (filters) {
+    if (filters && Object.keys(filters).length > 0) {
       operations = operations.filter(op => {
         let match = true;
         if (filters.libelleoperation) {
@@ -170,7 +224,7 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
       });
     }
 
-    console.log('🎯 Returning filtered operations:', operations);
+    console.log('🎯 Returning filtered operations:', operations.length);
     return operations;
   } catch (error) {
     console.error('💥 Error fetching operations:', error);
