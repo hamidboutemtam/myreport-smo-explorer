@@ -18,6 +18,33 @@ export const useOperationData = (operationId: string | undefined) => {
     };
   };
 
+  // Fonction pour récupérer toutes les pages d'une API
+  const fetchAllPages = async (baseUrl: string): Promise<any[]> => {
+    let allData: any[] = [];
+    let currentUrl = baseUrl;
+    
+    while (currentUrl) {
+      console.log('Fetching page:', currentUrl);
+      const response = await fetch(currentUrl, { headers: getAuthHeader() });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      allData = allData.concat(data.value || []);
+      
+      // Vérifier s'il y a une page suivante
+      currentUrl = data['@odata.nextLink'] ? 
+        (data['@odata.nextLink'].startsWith('http') ? 
+          data['@odata.nextLink'] : 
+          `http://localhost:8000${data['@odata.nextLink']}`) : 
+        null;
+    }
+    
+    return allData;
+  };
+
   const fetchSimulations = async () => {
     if (!operationId) return;
     
@@ -73,74 +100,28 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // D'abord tester si l'endpoint existe du tout SANS FILTRE
-      console.log('Testing if AXE_MON_SRTypo endpoint exists (no filter)...');
-      try {
-        const testResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$top=1`,
-          { headers: getAuthHeader() }
-        );
-        console.log('Endpoint test status:', testResponse.status);
-        
-        if (testResponse.ok) {
-          const testData = await testResponse.json();
-          console.log('Sample data from AXE_MON_SRTypo:', testData);
-          
-          // Si l'endpoint existe, essayer de trouver des données pour notre projet
-          if (testData.value && testData.value.length > 0) {
-            // Récupérer toutes les données et filtrer côté client
-            const allResponse = await fetch(
-              `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo`,
-              { headers: getAuthHeader() }
-            );
-            
-            if (allResponse.ok) {
-              const allData = await allResponse.json();
-              const projectData = allData.value?.filter((item: any) => 
-                item.Code_Projet === operationId && item.Code_Simulation === selectedSimulation
-              ) || [];
-              
-              console.log('Filtered typology data:', projectData);
-              setTypologyData(projectData);
-              return;
-            }
-          }
-        } else {
-          console.error('AXE_MON_SRTypo endpoint failed:', testResponse.status, testResponse.statusText);
-        }
-      } catch (endpointError) {
-        console.error('AXE_MON_SRTypo endpoint does not exist:', endpointError);
-      }
+      // Utiliser la pagination comme dans l'API originale
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
       
-      // Essayer avec notre project d'abord (sans simulation)
-      console.log('Testing with project filter only...');
-      try {
-        const projectResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}'`,
-          { headers: getAuthHeader() }
-        );
-        
-        if (projectResponse.ok) {
-          const projectData = await projectResponse.json();
-          console.log('Available simulations for this project:', projectData.value?.map(item => item.Code_Simulation));
-          
-          // Si on a des données pour ce projet, essayer de filtrer par simulation
-          if (projectData.value && projectData.value.length > 0) {
-            const matchingData = projectData.value.filter((item: any) => item.Code_Simulation === selectedSimulation);
-            console.log('Matching data for simulation:', matchingData);
-            setTypologyData(matchingData);
-            return;
-          }
-        }
-      } catch (projectError) {
-        console.error('Project filter failed:', projectError);
-      }
-      
-      console.warn('No typology data found - this simulation may not have typology data');
-      setTypologyData([]);
+      console.log('Typology data received:', allData);
+      setTypologyData(allData || []);
     } catch (error) {
       console.error('Error fetching typology data:', error);
-      setTypologyData([]);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered typology data:', filteredData);
+        setTypologyData(filteredData || []);
+      } catch (retryError) {
+        console.error('Retry failed:', retryError);
+        setTypologyData([]);
+      }
     }
   };
 
@@ -150,74 +131,28 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
       
-      // D'abord tester si l'endpoint existe du tout SANS FILTRE
-      console.log('Testing if AXE_MON_SRPrixRev endpoint exists (no filter)...');
-      try {
-        const testResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$top=1`,
-          { headers: getAuthHeader() }
-        );
-        console.log('Prix de revient endpoint test status:', testResponse.status);
-        
-        if (testResponse.ok) {
-          const testData = await testResponse.json();
-          console.log('Sample data from AXE_MON_SRPrixRev:', testData);
-          
-          // Si l'endpoint existe, essayer de trouver des données pour notre projet
-          if (testData.value && testData.value.length > 0) {
-            // Récupérer toutes les données et filtrer côté client
-            const allResponse = await fetch(
-              `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev`,
-              { headers: getAuthHeader() }
-            );
-            
-            if (allResponse.ok) {
-              const allData = await allResponse.json();
-              const projectData = allData.value?.filter((item: any) => 
-                item.Code_Projet === operationId && item.Code_Simulation === selectedSimulation
-              ) || [];
-              
-              console.log('Filtered prix de revient data:', projectData);
-              setPrixRevientData(projectData);
-              return;
-            }
-          }
-        } else {
-          console.error('AXE_MON_SRPrixRev endpoint failed:', testResponse.status, testResponse.statusText);
-        }
-      } catch (endpointError) {
-        console.error('AXE_MON_SRPrixRev endpoint does not exist:', endpointError);
-      }
+      // Utiliser la pagination comme dans l'API originale
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
       
-      // Essayer avec notre project d'abord (sans simulation)
-      console.log('Testing prix de revient with project filter only...');
-      try {
-        const projectResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}'`,
-          { headers: getAuthHeader() }
-        );
-        
-        if (projectResponse.ok) {
-          const projectData = await projectResponse.json();
-          console.log('Available simulations in prix de revient for this project:', projectData.value?.map(item => item.Code_Simulation));
-          
-          // Si on a des données pour ce projet, essayer de filtrer par simulation
-          if (projectData.value && projectData.value.length > 0) {
-            const matchingData = projectData.value.filter((item: any) => item.Code_Simulation === selectedSimulation);
-            console.log('Matching prix de revient data for simulation:', matchingData);
-            setPrixRevientData(matchingData);
-            return;
-          }
-        }
-      } catch (projectError) {
-        console.error('Prix de revient project filter failed:', projectError);
-      }
-      
-      console.warn('No prix de revient data found - this simulation may not have budget data');
-      setPrixRevientData([]);
+      console.log('Prix de revient data received:', allData);
+      setPrixRevientData(allData || []);
     } catch (error) {
       console.error('Error fetching prix de revient data:', error);
-      setPrixRevientData([]);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying prix de revient without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered prix de revient data:', filteredData);
+        setPrixRevientData(filteredData || []);
+      } catch (retryError) {
+        console.error('Prix de revient retry failed:', retryError);
+        setPrixRevientData([]);
+      }
     }
   };
 
