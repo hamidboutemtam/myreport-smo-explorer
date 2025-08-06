@@ -1,17 +1,15 @@
 
-import { Operation, OperationFilters, ExportOptions } from '@/types';
+import { Operation, OperationFilters, ExportOptions, ApiOperationData } from '@/types';
 
-// Base API URL - This would be your actual API endpoint in production
-const API_BASE_URL = '/api';
+// External API URL
+const API_BASE_URL = 'http://pos0726:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
 
-// Helper function to get the auth header
+// Helper function to get basic auth header
 const getAuthHeader = () => {
-  const user = localStorage.getItem('smo_user');
-  if (!user) return {};
-  
-  const { token } = JSON.parse(user);
+  const credentials = btoa('ADM:ADM'); // Base64 encode username:password
   return {
-    Authorization: `Bearer ${token}`
+    'Authorization': `Basic ${credentials}`,
+    'Content-Type': 'application/json',
   };
 };
 
@@ -26,102 +24,116 @@ const handleResponse = async (response: Response) => {
   return response.json();
 };
 
+// Helper function to extract département from commune
+const getDepartementFromCommune = (commune: string): string => {
+  // Simple mapping based on common patterns
+  // In practice, you'd want a more comprehensive mapping
+  const departementMapping: { [key: string]: string } = {
+    'lyon': '69',
+    'marseille': '13',
+    'paris': '75',
+    'toulouse': '31',
+    'nice': '06',
+    'nantes': '44',
+    'montpellier': '34',
+    'strasbourg': '67',
+    'bordeaux': '33',
+    'lille': '59'
+  };
+  
+  const communeLower = commune.toLowerCase();
+  for (const [city, dept] of Object.entries(departementMapping)) {
+    if (communeLower.includes(city)) {
+      return dept;
+    }
+  }
+  
+  // Default fallback - you might want to use a more sophisticated approach
+  return '00';
+};
+
+// Transform API data to application format
+const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
+  // Group by operation (LibelleOperation)
+  const groupedData = apiData.reduce((acc, item) => {
+    const operationKey = item.LibelleOperation;
+    if (!acc[operationKey]) {
+      acc[operationKey] = [];
+    }
+    acc[operationKey].push(item);
+    return acc;
+  }, {} as { [key: string]: ApiOperationData[] });
+
+  // Transform to Operation objects
+  return Object.entries(groupedData).map(([libelle, simulations]) => {
+    const firstSim = simulations[0];
+    const departement = getDepartementFromCommune(firstSim.Commune);
+    
+    return {
+      id: firstSim.Code_Projet,
+      libelleoperation: libelle,
+      adresseoperation: firstSim.AdresseOperation,
+      commune: firstSim.Commune,
+      departement,
+      simulations: simulations.map(sim => ({
+        id: sim.Code_Simulation,
+        name: sim.LibelleSimulation,
+        datevaleur: sim.DateValeur,
+        datemodif: sim.DateModif,
+        commune: sim.Commune,
+        annee: sim.AnneeDeFinancement,
+        departement: getDepartementFromCommune(sim.Commune),
+        status: sim.SimulDefaut ? 'Défaut' : 'Actif'
+      }))
+    };
+  });
+};
+
 // Get operations with optional filters
 export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
-  // Mock API for demonstration - will return dummy data
-  // In a real app, this would make an actual API call
-  
-  // Simulating API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Sample data with multiple simulations
-  const mockOperations: Operation[] = [
-    {
-      id: '1',
-      libelleoperation: 'Résidence Les Oliviers',
-      simulations: [
-        {
-          id: 'sim-1-1',
-          name: 'Simulation Base',
-          commune: 'Marseille',
-          annee: 2023,
-          departement: '13',
-          status: 'En cours'
-        },
-        {
-          id: 'sim-1-2',
-          name: 'Simulation Optimisée',
-          commune: 'Aix-en-Provence',
-          annee: 2024,
-          departement: '13',
-          status: 'Planifié'
-        }
-      ]
-    },
-    {
-      id: '2',
-      libelleoperation: 'Parc Saint-Michel',
-      simulations: [
-        {
-          id: 'sim-2-1',
-          name: 'Scenario Standard',
-          commune: 'Lyon',
-          annee: 2022,
-          departement: '69',
-          status: 'Terminé'
-        },
-        {
-          id: 'sim-2-2',
-          name: 'Scenario Alternatif',
-          commune: 'Villeurbanne',
-          annee: 2023,
-          departement: '69',
-          status: 'En cours'
-        }
-      ]
-    },
-    {
-      id: '3',
-      libelleoperation: 'Les Terrasses du Port',
-      simulations: [
-        {
-          id: 'sim-3-1',
-          name: 'Version 1',
-          commune: 'Marseille',
-          annee: 2023,
-          departement: '13',
-          status: 'Planifié'
-        }
-      ]
-    }
-  ];
-
-  // Apply filters if provided
-  if (filters) {
-    return mockOperations.filter(op => {
-      let match = true;
-      if (filters.libelleoperation) {
-        match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
-      }
-      if (filters.commune) {
-        match = match && op.simulations.some(sim => 
-          sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
-        );
-      }
-      if (filters.annee) {
-        match = match && op.simulations.some(sim => sim.annee === filters.annee);
-      }
-      if (filters.departement) {
-        match = match && op.simulations.some(sim => sim.departement === filters.departement);
-      }
-      if (filters.status) {
-        match = match && op.simulations.some(sim => sim.status === filters.status);
-      }
-      return match;
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'GET',
+      headers: getAuthHeader(),
     });
-  }
 
-  return mockOperations;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const apiData: ApiOperationData[] = await response.json();
+    let operations = transformApiData(apiData);
+
+    // Apply filters if provided
+    if (filters) {
+      operations = operations.filter(op => {
+        let match = true;
+        if (filters.libelleoperation) {
+          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
+        }
+        if (filters.commune) {
+          match = match && op.simulations.some(sim => 
+            sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
+          );
+        }
+        if (filters.annee) {
+          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        }
+        if (filters.departement) {
+          match = match && op.simulations.some(sim => sim.departement === filters.departement);
+        }
+        if (filters.status) {
+          match = match && op.simulations.some(sim => sim.status === filters.status);
+        }
+        return match;
+      });
+    }
+
+    return operations;
+  } catch (error) {
+    console.error('Error fetching operations:', error);
+    throw new Error('Erreur lors de la récupération des données');
+  }
 };
 
 // Get details for a specific operation
@@ -133,10 +145,15 @@ export const getOperationDetails = async (operationId: string): Promise<Operatio
   const mockDetails: Operation = {
     id: operationId,
     libelleoperation: 'Résidence Les Oliviers',
+    adresseoperation: '123 Avenue des Oliviers',
+    commune: 'Marseille',
+    departement: '13',
     simulations: [
       {
         id: 'sim-detail-1',
         name: 'Simulation Détaillée',
+        datevaleur: '2023-01-15',
+        datemodif: '2023-06-20',
         commune: 'Marseille',
         annee: 2023,
         departement: '13',

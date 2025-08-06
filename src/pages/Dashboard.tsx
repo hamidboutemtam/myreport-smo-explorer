@@ -296,10 +296,11 @@ const Dashboard = () => {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Simulation</TableHead>
+                              <TableHead>Adresse</TableHead>
                               <TableHead>Commune</TableHead>
-                              <TableHead>Année</TableHead>
                               <TableHead>Département</TableHead>
-                              <TableHead>Statut</TableHead>
+                              <TableHead>Date Valeur</TableHead>
+                              <TableHead>Date Modif</TableHead>
                               <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -322,26 +323,22 @@ const Dashboard = () => {
                                             {simulation.name}
                                           </SelectItem>
                                         ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell>{selectedSimulation?.commune || '-'}</TableCell>
-                                  <TableCell>{selectedSimulation?.annee || '-'}</TableCell>
-                                  <TableCell>{selectedSimulation?.departement || '-'}</TableCell>
-                                  <TableCell>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={
-                                        selectedSimulation?.status === 'En cours' 
-                                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                                          : selectedSimulation?.status === 'Terminé' 
-                                          ? 'bg-green-50 text-green-700 border-green-200'
-                                          : 'bg-amber-50 text-amber-700 border-amber-200'
-                                      }
-                                    >
-                                      {selectedSimulation?.status || 'N/A'}
-                                    </Badge>
-                                  </TableCell>
+                                       </SelectContent>
+                                     </Select>
+                                   </TableCell>
+                                   <TableCell className="max-w-xs truncate" title={operation.adresseoperation}>
+                                     {operation.adresseoperation || '-'}
+                                   </TableCell>
+                                   <TableCell>{operation.commune || '-'}</TableCell>
+                                   <TableCell>{operation.departement || '-'}</TableCell>
+                                   <TableCell>
+                                     {selectedSimulation?.datevaleur ? 
+                                       new Date(selectedSimulation.datevaleur).toLocaleDateString('fr-FR') : '-'}
+                                   </TableCell>
+                                   <TableCell>
+                                     {selectedSimulation?.datemodif ? 
+                                       new Date(selectedSimulation.datemodif).toLocaleDateString('fr-FR') : '-'}
+                                   </TableCell>
                                   <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
                                       <Button

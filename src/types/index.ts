@@ -6,10 +6,43 @@ export interface User {
   token: string;
 }
 
+// API Response types
+export interface ApiOperationData {
+  Code_Projet: string;
+  Code_Simulation: string;
+  LibelleOperation: string;
+  LibelleSimulation: string;
+  DateCreation: string;
+  DateModif: string;
+  DateValeur: string;
+  SimulDefaut: boolean;
+  Commune: string;
+  CodePostal: string;
+  AdresseOperation: string;
+  NumeroInsee: string;
+  Zone123: string;
+  ZoneABC: string;
+  Proprietaire: string;
+  RespBudget: string;
+  NatureConstruction: string;
+  AnneeDeFinancement: number;
+  Delegataire: string;
+  EPCI: string;
+  SurfaceTerrain: number;
+  SurfaceHON: number;
+  DateOS: string;
+  DureeChantier: number;
+  DateAchevTrav: string;
+  id: string;
+}
+
 // Operation-related types
 export interface Operation {
   id: string;
   libelleoperation: string;
+  adresseoperation: string;
+  commune: string;
+  departement: string;
   simulations: Simulation[];
   details?: OperationDetails;
 }
@@ -17,6 +50,8 @@ export interface Operation {
 export interface Simulation {
   id: string;
   name: string;
+  datevaleur: string;
+  datemodif: string;
   commune: string;
   annee: number;
   departement?: string;
