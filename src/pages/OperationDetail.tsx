@@ -477,14 +477,14 @@ const OperationDetail = () => {
 
                 {/* Onglet Nombre de logements */}
                 <TabsContent value="logements" className="space-y-4 animate-fade-in">
-                  <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="bg-blue-50 rounded-lg p-3">
                     <div className="overflow-x-auto">
-                      <Table>
+                      <Table className="table-compact">
                         <TableHeader>
-                          <TableRow className="bg-blue-100/50">
-                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                          <TableRow className="bg-blue-100/50 h-8">
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
                             {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
                                 {financing}
                               </TableHead>
                             ))}
@@ -492,19 +492,19 @@ const OperationDetail = () => {
                         </TableHeader>
                         <TableBody>
                           {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
                               {financingTypes.map(financing => (
-                                <TableCell key={financing} className="text-center">
+                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
                                   {row.byFinancement[financing]?.Nb || 0}
                                 </TableCell>
                               ))}
                             </TableRow>
                           ))}
-                          <TableRow className="bg-blue-100 font-semibold border-t-2 border-blue-200">
-                            <TableCell className="text-gray-900">Total</TableCell>
+                          <TableRow className="bg-blue-100 font-semibold border-t-2 border-blue-200 h-8">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3">Total</TableCell>
                             {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center text-blue-700">
+                              <TableCell key={financing} className="text-center text-blue-700 text-sm py-1 px-2">
                                 {totals.byFinancement[financing]?.Nb || 0}
                               </TableCell>
                             ))}
@@ -516,80 +516,80 @@ const OperationDetail = () => {
                 </TabsContent>
 
                 {/* Onglet Surfaces */}
-                <TabsContent value="surfaces" className="space-y-6 animate-fade-in">
+                <TabsContent value="surfaces" className="space-y-4 animate-fade-in">
                   {/* Surface Utile */}
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-900 mb-4">Surface Utile (m²)</h4>
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <h4 className="font-semibold text-green-900 mb-2 text-sm">Surface Utile (m²)</h4>
                     <div className="overflow-x-auto">
-                      <Table>
-                      <TableHeader>
-                        <TableRow className="bg-green-100/50">
-                          <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                          {financingTypes.map(financing => (
-                            <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
-                              {financing}
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Object.values(groupedData).map((row: any, index) => (
-                          <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                            <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                      <Table className="table-compact">
+                        <TableHeader>
+                          <TableRow className="bg-green-100/50 h-8">
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
+                            {financingTypes.map(financing => (
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
                               {financingTypes.map(financing => (
-                                <TableCell key={financing} className="text-center">
+                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
                                   {(row.byFinancement[financing]?.Su || 0).toFixed(1)}
                                 </TableCell>
                               ))}
                             </TableRow>
                           ))}
-                        <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200">
-                          <TableCell className="text-gray-900">Surface totale</TableCell>
-                          {financingTypes.map(financing => (
-                            <TableCell key={financing} className="text-center text-green-700">
-                              {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
+                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200 h-8">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3">Surface totale</TableCell>
+                            {financingTypes.map(financing => (
+                              <TableCell key={financing} className="text-center text-green-700 text-sm py-1 px-2">
+                                {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
+                              </TableCell>
+                            ))}
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </div>
                   </div>
 
                   {/* Surface Habitable */}
-                  <div className="bg-orange-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-900 mb-4">Surface Habitable (m²)</h4>
+                  <div className="bg-orange-50 rounded-lg p-3">
+                    <h4 className="font-semibold text-orange-900 mb-2 text-sm">Surface Habitable (m²)</h4>
                     <div className="overflow-x-auto">
-                      <Table>
-                      <TableHeader>
-                        <TableRow className="bg-orange-100/50">
-                          <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                          {financingTypes.map(financing => (
-                            <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
-                              {financing}
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Object.values(groupedData).map((row: any, index) => (
-                          <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                            <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                      <Table className="table-compact">
+                        <TableHeader>
+                          <TableRow className="bg-orange-100/50 h-8">
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
+                            {financingTypes.map(financing => (
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
                               {financingTypes.map(financing => (
-                                <TableCell key={financing} className="text-center">
+                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
                                   {(row.byFinancement[financing]?.Shab || 0).toFixed(1)}
                                 </TableCell>
                               ))}
                             </TableRow>
                           ))}
-                        <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200">
-                          <TableCell className="text-gray-900">Surface totale</TableCell>
-                          {financingTypes.map(financing => (
-                            <TableCell key={financing} className="text-center text-orange-700">
-                              {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
+                          <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200 h-8">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3">Surface totale</TableCell>
+                            {financingTypes.map(financing => (
+                              <TableCell key={financing} className="text-center text-orange-700 text-sm py-1 px-2">
+                                {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
+                              </TableCell>
+                            ))}
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </div>
@@ -598,14 +598,14 @@ const OperationDetail = () => {
 
                 {/* Onglet Loyers */}
                 <TabsContent value="loyers" className="space-y-4 animate-fade-in">
-                  <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="bg-purple-50 rounded-lg p-3">
                     <div className="overflow-x-auto">
-                      <Table>
+                      <Table className="table-compact">
                         <TableHeader>
-                          <TableRow className="bg-purple-100/50">
-                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                          <TableRow className="bg-purple-100/50 h-8">
+                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Type</TableHead>
                             {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
                                 {financing}
                               </TableHead>
                             ))}
@@ -623,15 +623,15 @@ const OperationDetail = () => {
                             const moyenneLoyer = totalNb > 0 ? totalLoyer / totalNb : 0;
 
                             return (
-                              <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                                <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                              <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                                <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">{row.Type}</TableCell>
                                 {financingTypes.map(financing => {
                                   const nb = row.byFinancement[financing]?.Nb || 0;
                                   const loyer = row.byFinancement[financing]?.LoyerMensuel || 0;
                                   const moyenne = nb > 0 ? loyer / nb : 0;
                                   
                                   return (
-                                    <TableCell key={financing} className="text-center">
+                                    <TableCell key={financing} className="text-center text-sm py-1 px-2">
                                       {moyenne > 0 ? `${moyenne.toFixed(0)} €` : '-'}
                                     </TableCell>
                                   );
@@ -639,15 +639,15 @@ const OperationDetail = () => {
                               </TableRow>
                             );
                           })}
-                          <TableRow className="bg-purple-100 font-semibold border-t-2 border-purple-200">
-                            <TableCell className="text-gray-900">Loyer moyen par financement</TableCell>
+                          <TableRow className="bg-purple-100 font-semibold border-t-2 border-purple-200 h-8">
+                            <TableCell className="text-gray-900 text-sm py-1 px-3">Loyer moyen par financement</TableCell>
                             {financingTypes.map(financing => {
                               const nb = totals.byFinancement[financing]?.Nb || 0;
                               const loyer = totals.byFinancement[financing]?.LoyerMensuel || 0;
                               const moyenne = nb > 0 ? loyer / nb : 0;
                               
                               return (
-                                <TableCell key={financing} className="text-center text-purple-700">
+                                <TableCell key={financing} className="text-center text-purple-700 text-sm py-1 px-2">
                                   {moyenne > 0 ? `${moyenne.toFixed(0)} €` : '-'}
                                 </TableCell>
                               );
