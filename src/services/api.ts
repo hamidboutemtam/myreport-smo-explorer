@@ -116,10 +116,12 @@ const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
     
     // Check for next page
     if (apiResponse['@odata.nextLink']) {
-      // Handle relative URLs
-      currentUrl = apiResponse['@odata.nextLink'].startsWith('http') 
-        ? apiResponse['@odata.nextLink']
-        : API_BASE_URL.replace(/\/[^\/]*$/, '') + apiResponse['@odata.nextLink'];
+      // Handle relative URLs - extract base URL and construct properly
+      const baseUrl = new URL(API_BASE_URL).origin; // http://localhost:8000
+      const nextLink = apiResponse['@odata.nextLink'];
+      currentUrl = nextLink.startsWith('http') 
+        ? nextLink
+        : `${baseUrl}${nextLink}`;
       pageCount++;
     } else {
       currentUrl = null;
