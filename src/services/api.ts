@@ -89,22 +89,18 @@ const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
   });
 };
 
-// Get operations with optional filters
-export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
-  console.log('🔍 Starting API call to:', API_BASE_URL);
-  console.log('🔑 Using headers:', getAuthHeader());
+// Helper function to fetch all paginated data
+const fetchAllPages = async (url: string): Promise<ApiOperationData[]> => {
+  let allData: ApiOperationData[] = [];
+  let currentUrl = url;
+  let pageCount = 1;
   
-  try {
-    console.log('📡 Making fetch request...');
-    const response = await fetch(API_BASE_URL, {
+  while (currentUrl) {
+    console.log(`📄 Fetching page ${pageCount}:`, currentUrl);
+    
+    const response = await fetch(currentUrl, {
       method: 'GET',
       headers: getAuthHeader(),
-    });
-
-    console.log('📨 Response received:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok
     });
 
     if (!response.ok) {
@@ -112,17 +108,41 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    console.log('📊 Parsing JSON response...');
     const apiResponse = await response.json();
-    console.log('✅ API Response received:', apiResponse);
+    const pageData: ApiOperationData[] = apiResponse.value || [];
     
-    // Extract data from OData format
-    const apiData: ApiOperationData[] = apiResponse.value || apiResponse;
-    console.log('📈 Number of items:', apiData?.length || 0);
+    console.log(`✅ Page ${pageCount} received: ${pageData.length} items`);
+    allData = allData.concat(pageData);
+    
+    // Check for next page
+    if (apiResponse['@odata.nextLink']) {
+      // Handle relative URLs
+      currentUrl = apiResponse['@odata.nextLink'].startsWith('http') 
+        ? apiResponse['@odata.nextLink']
+        : API_BASE_URL.replace(/\/[^\/]*$/, '') + apiResponse['@odata.nextLink'];
+      pageCount++;
+    } else {
+      currentUrl = null;
+    }
+  }
+  
+  console.log(`📚 Total items fetched across ${pageCount} pages: ${allData.length}`);
+  return allData;
+};
+
+// Get operations with optional filters
+export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
+  console.log('🔍 Starting API call to:', API_BASE_URL);
+  console.log('🔑 Using headers:', getAuthHeader());
+  
+  try {
+    console.log('📡 Fetching all paginated data...');
+    const allApiData = await fetchAllPages(API_BASE_URL);
     
     console.log('🔄 Transforming API data...');
-    let operations = transformApiData(apiData);
+    let operations = transformApiData(allApiData);
     console.log('🏗️ Transformed operations:', operations);
+    
     // Apply filters if provided
     if (filters) {
       operations = operations.filter(op => {
