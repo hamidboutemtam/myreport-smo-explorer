@@ -100,28 +100,47 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // Utiliser la pagination comme dans l'API originale
-      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const allData = await fetchAllPages(baseUrl);
+      // Essayer différents noms d'axes possibles
+      const possibleAxes = [
+        'AXE_MON_SRTypo',
+        'AXE_MON_Typo', 
+        'AXE_Typologie',
+        'AXE_MON_Typologie',
+        'Typologie'
+      ];
       
-      console.log('Typology data received:', allData);
-      setTypologyData(allData || []);
+      for (const axeName of possibleAxes) {
+        try {
+          const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+          const allData = await fetchAllPages(baseUrl);
+          console.log(`✅ Found typology data with axis: ${axeName}`, allData);
+          setTypologyData(allData || []);
+          return;
+        } catch (axisError) {
+          console.log(`❌ Axis ${axeName} not found, trying next...`);
+          continue;
+        }
+      }
+      
+      // Si aucun axe ne fonctionne, essayer sans filtre de simulation
+      for (const axeName of possibleAxes) {
+        try {
+          const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}'`;
+          const allData = await fetchAllPages(baseUrl);
+          const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+          console.log(`✅ Found and filtered typology data with axis: ${axeName}`, filteredData);
+          setTypologyData(filteredData || []);
+          return;
+        } catch (axisError) {
+          continue;
+        }
+      }
+      
+      console.log('❌ No typology data found for this simulation');
+      setTypologyData([]);
     } catch (error) {
       console.error('Error fetching typology data:', error);
-      // Essayer sans le filtre de simulation si ça échoue
-      try {
-        console.log('Retrying without simulation filter...');
-        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$filter=Code_Projet eq '${operationId}'`;
-        const allData = await fetchAllPages(baseUrl);
-        
-        // Filtrer côté client
-        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
-        console.log('Filtered typology data:', filteredData);
-        setTypologyData(filteredData || []);
-      } catch (retryError) {
-        console.error('Retry failed:', retryError);
-        setTypologyData([]);
-      }
+      setTypologyData([]);
     }
   };
 
@@ -131,28 +150,47 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
       
-      // Utiliser la pagination comme dans l'API originale
-      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const allData = await fetchAllPages(baseUrl);
+      // Essayer différents noms d'axes possibles
+      const possibleAxes = [
+        'AXE_MON_SRPrixRev',
+        'AXE_MON_PrixRev',
+        'AXE_PrixRevient', 
+        'AXE_MON_PrixRevient',
+        'PrixRevient'
+      ];
       
-      console.log('Prix de revient data received:', allData);
-      setPrixRevientData(allData || []);
+      for (const axeName of possibleAxes) {
+        try {
+          const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+          const allData = await fetchAllPages(baseUrl);
+          console.log(`✅ Found prix de revient data with axis: ${axeName}`, allData);
+          setPrixRevientData(allData || []);
+          return;
+        } catch (axisError) {
+          console.log(`❌ Axis ${axeName} not found, trying next...`);
+          continue;
+        }
+      }
+      
+      // Si aucun axe ne fonctionne, essayer sans filtre de simulation
+      for (const axeName of possibleAxes) {
+        try {
+          const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/${axeName}?$filter=Code_Projet eq '${operationId}'`;
+          const allData = await fetchAllPages(baseUrl);
+          const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+          console.log(`✅ Found and filtered prix de revient data with axis: ${axeName}`, filteredData);
+          setPrixRevientData(filteredData || []);
+          return;
+        } catch (axisError) {
+          continue;
+        }
+      }
+      
+      console.log('❌ No prix de revient data found for this simulation');
+      setPrixRevientData([]);
     } catch (error) {
       console.error('Error fetching prix de revient data:', error);
-      // Essayer sans le filtre de simulation si ça échoue
-      try {
-        console.log('Retrying prix de revient without simulation filter...');
-        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$filter=Code_Projet eq '${operationId}'`;
-        const allData = await fetchAllPages(baseUrl);
-        
-        // Filtrer côté client
-        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
-        console.log('Filtered prix de revient data:', filteredData);
-        setPrixRevientData(filteredData || []);
-      } catch (retryError) {
-        console.error('Prix de revient retry failed:', retryError);
-        setPrixRevientData([]);
-      }
+      setPrixRevientData([]);
     }
   };
 
