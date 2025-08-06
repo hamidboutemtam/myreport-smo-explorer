@@ -96,44 +96,73 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Étiquette récapitulative */}
+        {/* Étiquettes de ratios du prix de revient */}
         <div className="mb-6">
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 max-w-md">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500 rounded-full p-2">
-                <Calculator className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-blue-600 font-medium mb-2">Prix de revient</p>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-blue-700">Total fiscalisé:</span>
-                    <span className="font-bold text-blue-900">
-                      {prixRevientTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-blue-700">Par logement:</span>
-                    <span className="font-bold text-blue-900">
-                      {totals.total.Nb > 0 ? 
-                        (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Nb).toLocaleString('fr-FR', { 
-                          maximumFractionDigits: 0 
-                        }) : '0'} €
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-blue-700">Par m² SHAB:</span>
-                    <span className="font-bold text-blue-900">
-                      {totals.total.Shab > 0 ? 
-                        (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Shab).toLocaleString('fr-FR', { 
-                          maximumFractionDigits: 0 
-                        }) : '0'} €/m²
-                    </span>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Prix de revient total */}
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500 rounded-full p-2">
+                  <Euro className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-xs text-blue-600 mt-2">
-                  {totals.total.Nb} logement{totals.total.Nb > 1 ? 's' : ''} • {totals.total.Shab.toFixed(0)} m² SHAB
-                </p>
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Prix de revient total</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {prixRevientTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Prix de revient par logement */}
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 rounded-full p-2">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">Prix de revient par logement</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {totals.total.Nb > 0 ? 
+                      (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Nb).toLocaleString('fr-FR', { 
+                        maximumFractionDigits: 0 
+                      }) : '0'} €
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Prix de revient par m² SHAB */}
+            <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-orange-500 rounded-full p-2">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-orange-600 font-medium">Prix de revient par m² SHAB</p>
+                  <p className="text-2xl font-bold text-orange-900">
+                    {totals.total.Shab > 0 ? 
+                      (prixRevientTable.reduce((sum, row) => sum + row.total, 0) / totals.total.Shab).toLocaleString('fr-FR', { 
+                        maximumFractionDigits: 0 
+                      }) : '0'} €/m²
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Surface moyenne par logement */}
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500 rounded-full p-2">
+                  <Calculator className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-purple-600 font-medium">Surface moyenne par logement</p>
+                  <p className="text-2xl font-bold text-purple-900">
+                    {totals.total.Nb > 0 ? 
+                      (totals.total.Shab / totals.total.Nb).toFixed(1) : '0.0'} m²
+                  </p>
+                </div>
               </div>
             </div>
           </div>
