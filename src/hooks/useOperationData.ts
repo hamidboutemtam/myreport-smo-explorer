@@ -73,23 +73,43 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // D'abord tester si l'endpoint existe du tout
-      console.log('Testing if AXE_MON_SRTypo endpoint exists...');
+      // D'abord tester si l'endpoint existe du tout SANS FILTRE
+      console.log('Testing if AXE_MON_SRTypo endpoint exists (no filter)...');
       try {
         const testResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo`,
+          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo?$top=1`,
           { headers: getAuthHeader() }
         );
         console.log('Endpoint test status:', testResponse.status);
         
         if (testResponse.ok) {
           const testData = await testResponse.json();
-          console.log('Sample data from AXE_MON_SRTypo:', testData.value?.slice(0, 2));
+          console.log('Sample data from AXE_MON_SRTypo:', testData);
+          
+          // Si l'endpoint existe, essayer de trouver des données pour notre projet
+          if (testData.value && testData.value.length > 0) {
+            // Récupérer toutes les données et filtrer côté client
+            const allResponse = await fetch(
+              `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypo`,
+              { headers: getAuthHeader() }
+            );
+            
+            if (allResponse.ok) {
+              const allData = await allResponse.json();
+              const projectData = allData.value?.filter((item: any) => 
+                item.Code_Projet === operationId && item.Code_Simulation === selectedSimulation
+              ) || [];
+              
+              console.log('Filtered typology data:', projectData);
+              setTypologyData(projectData);
+              return;
+            }
+          }
+        } else {
+          console.error('AXE_MON_SRTypo endpoint failed:', testResponse.status, testResponse.statusText);
         }
       } catch (endpointError) {
-        console.error('Endpoint does not exist or is not accessible:', endpointError);
-        setTypologyData([]);
-        return;
+        console.error('AXE_MON_SRTypo endpoint does not exist:', endpointError);
       }
       
       // Essayer avec notre project d'abord (sans simulation)
@@ -130,23 +150,43 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching prix de revient data for simulation:', selectedSimulation);
       
-      // D'abord tester si l'endpoint existe du tout
-      console.log('Testing if AXE_MON_SRPrixRev endpoint exists...');
+      // D'abord tester si l'endpoint existe du tout SANS FILTRE
+      console.log('Testing if AXE_MON_SRPrixRev endpoint exists (no filter)...');
       try {
         const testResponse = await fetch(
-          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev`,
+          `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev?$top=1`,
           { headers: getAuthHeader() }
         );
         console.log('Prix de revient endpoint test status:', testResponse.status);
         
         if (testResponse.ok) {
           const testData = await testResponse.json();
-          console.log('Sample data from AXE_MON_SRPrixRev:', testData.value?.slice(0, 2));
+          console.log('Sample data from AXE_MON_SRPrixRev:', testData);
+          
+          // Si l'endpoint existe, essayer de trouver des données pour notre projet
+          if (testData.value && testData.value.length > 0) {
+            // Récupérer toutes les données et filtrer côté client
+            const allResponse = await fetch(
+              `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRev`,
+              { headers: getAuthHeader() }
+            );
+            
+            if (allResponse.ok) {
+              const allData = await allResponse.json();
+              const projectData = allData.value?.filter((item: any) => 
+                item.Code_Projet === operationId && item.Code_Simulation === selectedSimulation
+              ) || [];
+              
+              console.log('Filtered prix de revient data:', projectData);
+              setPrixRevientData(projectData);
+              return;
+            }
+          }
+        } else {
+          console.error('AXE_MON_SRPrixRev endpoint failed:', testResponse.status, testResponse.statusText);
         }
       } catch (endpointError) {
-        console.error('Prix de revient endpoint does not exist or is not accessible:', endpointError);
-        setPrixRevientData([]);
-        return;
+        console.error('AXE_MON_SRPrixRev endpoint does not exist:', endpointError);
       }
       
       // Essayer avec notre project d'abord (sans simulation)
