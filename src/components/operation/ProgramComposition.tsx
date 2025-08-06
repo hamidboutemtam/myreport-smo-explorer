@@ -21,7 +21,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
     if (!typologyData || typologyData.length === 0) return {};
     
     return typologyData.reduce((acc, row) => {
-      const financing = row.Type || 'Non défini';
+      const financing = row.Code_Programme || 'Non défini';
       if (!acc[financing]) {
         acc[financing] = {
           Nb: 0,
