@@ -178,8 +178,10 @@ const Dashboard = () => {
     {} as { [key: string]: Operation[] }
   );
 
-  // Get unique communes for filter
+  // Get unique communes and other filter values
   const communes = [...new Set(operations.flatMap(op => (op.simulations || []).map(sim => sim.commune)))];
+  const natureConstructions = [...new Set(operations.map(op => op.natureconstruction).filter(Boolean))];
+  const responsables = [...new Set(operations.map(op => op.responsable).filter(Boolean))];
 
   // Handle simulation selection
   const handleSimulationChange = (operationId: string, simulationId: string) => {
@@ -272,11 +274,9 @@ const Dashboard = () => {
               if (!value) return null;
               return (
                 <Badge key={key} variant="outline" className="filter-badge">
-                  {key === 'libelleoperation' ? 'Libellé' : 
-                   key === 'commune' ? 'Commune' : 
-                   key === 'annee' ? 'Année' : 
-                   key === 'departement' ? 'Département' : 
-                   key === 'status' ? 'Statut' : key}: {value}
+                  {key === 'commune' ? 'Commune' : 
+                   key === 'natureconstruction' ? 'Nature' : 
+                   key === 'responsable' ? 'Responsable' : key}: {value}
                 </Badge>
               );
             })}
@@ -308,18 +308,7 @@ const Dashboard = () => {
               <CardDescription>Affinez votre recherche d'opérations</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="filter-libelle">Libellé opération</Label>
-                  <Input
-                    id="filter-libelle"
-                    value={filters.libelleoperation || ''}
-                    onChange={(e) => handleFilterChange('libelleoperation', e.target.value)}
-                    placeholder="Rechercher par libellé"
-                    className="w-full"
-                  />
-                </div>
-                
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="filter-commune">Commune</Label>
                   <Select
@@ -329,7 +318,7 @@ const Dashboard = () => {
                     <SelectTrigger id="filter-commune">
                       <SelectValue placeholder="Sélectionnez une commune" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-popover border border-border shadow-md">
                       {communes.map((commune) => (
                         <SelectItem key={commune} value={commune}>
                           {commune}
@@ -340,22 +329,33 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="filter-annee">Année</Label>
+                  <Label htmlFor="filter-nature">Nature de construction</Label>
                   <Select
-                    value={filters.annee?.toString() || ''}
-                    onValueChange={(value) => handleFilterChange('annee', value ? parseInt(value) : undefined)}
+                    value={filters.natureconstruction || ''}
+                    onValueChange={(value) => handleFilterChange('natureconstruction', value)}
                   >
-                    <SelectTrigger id="filter-annee">
-                      <SelectValue placeholder="Sélectionnez une année" />
+                    <SelectTrigger id="filter-nature">
+                      <SelectValue placeholder="Sélectionnez une nature" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
+                    <SelectContent className="z-50 bg-popover border border-border shadow-md">
+                      {['Construction neuve', 'Réhabilitation', 'Résidence sociale'].map((nature) => (
+                        <SelectItem key={nature} value={nature}>
+                          {nature}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="filter-responsable">Responsable</Label>
+                  <Input
+                    id="filter-responsable"
+                    value={filters.responsable || ''}
+                    onChange={(e) => handleFilterChange('responsable', e.target.value)}
+                    placeholder="Nom du responsable"
+                    className="w-full"
+                  />
                 </div>
               </div>
               

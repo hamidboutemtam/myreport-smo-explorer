@@ -80,6 +80,8 @@ const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
       adresseoperation: firstSim.AdresseOperation,
       commune: firstSim.Commune,
       departement,
+      natureconstruction: firstSim.NatureConstruction,
+      responsable: firstSim.RespBudget,
       simulations: simulations.map(sim => ({
         id: sim.Code_Simulation,
         name: sim.LibelleSimulation,
@@ -166,22 +168,16 @@ export const getOperations = async (filters?: OperationFilters, forceRefresh: bo
     if (filters && Object.keys(filters).length > 0) {
       operations = operations.filter(op => {
         let match = true;
-        if (filters.libelleoperation) {
-          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
-        }
         if (filters.commune) {
           match = match && op.simulations.some(sim => 
             sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
           );
         }
-        if (filters.annee) {
-          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        if (filters.natureconstruction) {
+          match = match && op.natureconstruction?.toLowerCase().includes(filters.natureconstruction.toLowerCase());
         }
-        if (filters.departement) {
-          match = match && op.simulations.some(sim => sim.departement === filters.departement);
-        }
-        if (filters.status) {
-          match = match && op.simulations.some(sim => sim.status === filters.status);
+        if (filters.responsable) {
+          match = match && op.responsable?.toLowerCase().includes(filters.responsable.toLowerCase());
         }
         return match;
       });
@@ -212,22 +208,16 @@ export const getOperations = async (filters?: OperationFilters, forceRefresh: bo
     if (filters && Object.keys(filters).length > 0) {
       operations = operations.filter(op => {
         let match = true;
-        if (filters.libelleoperation) {
-          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
-        }
         if (filters.commune) {
           match = match && op.simulations.some(sim => 
             sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
           );
         }
-        if (filters.annee) {
-          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        if (filters.natureconstruction) {
+          match = match && op.natureconstruction?.toLowerCase().includes(filters.natureconstruction.toLowerCase());
         }
-        if (filters.departement) {
-          match = match && op.simulations.some(sim => sim.departement === filters.departement);
-        }
-        if (filters.status) {
-          match = match && op.simulations.some(sim => sim.status === filters.status);
+        if (filters.responsable) {
+          match = match && op.responsable?.toLowerCase().includes(filters.responsable.toLowerCase());
         }
         return match;
       });
@@ -264,22 +254,16 @@ export const getOperationsProgressive = async (
       if (filters && Object.keys(filters).length > 0) {
         filteredOperations = currentOperations.filter(op => {
           let match = true;
-          if (filters.libelleoperation) {
-            match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
-          }
           if (filters.commune) {
             match = match && op.simulations.some(sim => 
               sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
             );
           }
-          if (filters.annee) {
-            match = match && op.simulations.some(sim => sim.annee === filters.annee);
+          if (filters.natureconstruction) {
+            match = match && op.natureconstruction?.toLowerCase().includes(filters.natureconstruction.toLowerCase());
           }
-          if (filters.departement) {
-            match = match && op.simulations.some(sim => sim.departement === filters.departement);
-          }
-          if (filters.status) {
-            match = match && op.simulations.some(sim => sim.status === filters.status);
+          if (filters.responsable) {
+            match = match && op.responsable?.toLowerCase().includes(filters.responsable.toLowerCase());
           }
           return match;
         });
@@ -304,22 +288,16 @@ export const getOperationsProgressive = async (
     if (filters && Object.keys(filters).length > 0) {
       operations = finalOperations.filter(op => {
         let match = true;
-        if (filters.libelleoperation) {
-          match = match && op.libelleoperation.toLowerCase().includes(filters.libelleoperation.toLowerCase());
-        }
         if (filters.commune) {
           match = match && op.simulations.some(sim => 
             sim.commune.toLowerCase().includes(filters.commune!.toLowerCase())
           );
         }
-        if (filters.annee) {
-          match = match && op.simulations.some(sim => sim.annee === filters.annee);
+        if (filters.natureconstruction) {
+          match = match && op.natureconstruction?.toLowerCase().includes(filters.natureconstruction.toLowerCase());
         }
-        if (filters.departement) {
-          match = match && op.simulations.some(sim => sim.departement === filters.departement);
-        }
-        if (filters.status) {
-          match = match && op.simulations.some(sim => sim.status === filters.status);
+        if (filters.responsable) {
+          match = match && op.responsable?.toLowerCase().includes(filters.responsable.toLowerCase());
         }
         return match;
       });

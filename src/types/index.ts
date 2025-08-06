@@ -43,6 +43,8 @@ export interface Operation {
   adresseoperation: string;
   commune: string;
   departement: string;
+  natureconstruction?: string;
+  responsable?: string;
   simulations: Simulation[];
   details?: OperationDetails;
 }
@@ -113,11 +115,9 @@ export interface Emprunt {
 
 // Filter-related types
 export interface OperationFilters {
-  libelleoperation?: string;
   commune?: string;
-  annee?: number;
-  departement?: string;
-  status?: string;
+  natureconstruction?: string;
+  responsable?: string;
 }
 
 // Export-related types
