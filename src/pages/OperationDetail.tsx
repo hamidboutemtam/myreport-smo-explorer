@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin, Euro } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TypologyData {
@@ -19,6 +19,8 @@ interface TypologyData {
   SurfHabMoy: number;
   Shab: number;
   Su: number;
+  LRetModule: number;
+  ProdLocModule: number;
 }
 
 interface Simulation {
@@ -149,7 +151,8 @@ const OperationDetail = () => {
     acc[key].byFinancement[financingNature] = {
       Nb: item.Nb,
       Su: item.Su,
-      Shab: item.Shab
+      Shab: item.Shab,
+      LoyerMensuel: item.LRetModule || 0
     };
     return acc;
   }, {} as any);
@@ -161,11 +164,11 @@ const OperationDetail = () => {
   const calculateTotals = () => {
     const totals = {
       byFinancement: {} as any,
-      total: { Nb: 0, Su: 0, Shab: 0 }
+      total: { Nb: 0, Su: 0, Shab: 0, LoyerMensuel: 0 }
     };
 
     financingTypes.forEach(financing => {
-      totals.byFinancement[financing] = { Nb: 0, Su: 0, Shab: 0 };
+      totals.byFinancement[financing] = { Nb: 0, Su: 0, Shab: 0, LoyerMensuel: 0 };
     });
 
     typologyData.forEach(item => {
@@ -173,9 +176,15 @@ const OperationDetail = () => {
       totals.byFinancement[financingNature].Nb += item.Nb;
       totals.byFinancement[financingNature].Su += item.Su;
       totals.byFinancement[financingNature].Shab += item.Shab;
+      if (item.LRetModule && item.Nb > 0) {
+        totals.byFinancement[financingNature].LoyerMensuel += item.LRetModule;
+      }
       totals.total.Nb += item.Nb;
       totals.total.Su += item.Su;
       totals.total.Shab += item.Shab;
+      if (item.LRetModule) {
+        totals.total.LoyerMensuel += item.LRetModule;
+      }
     });
 
     return totals;
@@ -293,7 +302,7 @@ const OperationDetail = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="logements" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="logements" className="flex items-center gap-2">
                     <Home className="w-4 h-4" />
                     Nombre de logements
@@ -301,6 +310,10 @@ const OperationDetail = () => {
                   <TabsTrigger value="surfaces" className="flex items-center gap-2">
                     <Ruler className="w-4 h-4" />
                     Surfaces
+                  </TabsTrigger>
+                  <TabsTrigger value="loyers" className="flex items-center gap-2">
+                    <Euro className="w-4 h-4" />
+                    Loyers
                   </TabsTrigger>
                 </TabsList>
 
@@ -446,6 +459,79 @@ const OperationDetail = () => {
                                 {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
                               </TableCell>
                             ))}
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Onglet Loyers */}
+                <TabsContent value="loyers" className="space-y-4 animate-fade-in">
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-purple-900 mb-4 text-center">
+                      LOYERS MOYENS MENSUELS (€) PAR TYPOLOGIE ET FINANCEMENT
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-purple-100/50">
+                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
+                            {financingTypes.map(financing => (
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => {
+                            // Calcul du loyer moyen total pour ce type
+                            const totalLoyer = financingTypes.reduce((sum, financing) => 
+                              sum + (row.byFinancement[financing]?.LoyerMensuel || 0), 0
+                            );
+                            const totalNb = financingTypes.reduce((sum, financing) => 
+                              sum + (row.byFinancement[financing]?.Nb || 0), 0
+                            );
+                            const moyenneLoyer = totalNb > 0 ? totalLoyer / totalNb : 0;
+
+                            return (
+                              <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                                <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                                <TableCell className="text-center font-semibold text-purple-600">
+                                  {moyenneLoyer.toFixed(0)} €
+                                </TableCell>
+                                {financingTypes.map(financing => {
+                                  const nb = row.byFinancement[financing]?.Nb || 0;
+                                  const loyer = row.byFinancement[financing]?.LoyerMensuel || 0;
+                                  const moyenne = nb > 0 ? loyer / nb : 0;
+                                  
+                                  return (
+                                    <TableCell key={financing} className="text-center">
+                                      {moyenne > 0 ? `${moyenne.toFixed(0)} €` : '-'}
+                                    </TableCell>
+                                  );
+                                })}
+                              </TableRow>
+                            );
+                          })}
+                          <TableRow className="bg-purple-100 font-semibold border-t-2 border-purple-200">
+                            <TableCell className="text-gray-900">Loyer moyen par financement</TableCell>
+                            <TableCell className="text-center text-purple-700">
+                              {totals.total.Nb > 0 ? `${(totals.total.LoyerMensuel / totals.total.Nb).toFixed(0)} €` : '-'}
+                            </TableCell>
+                            {financingTypes.map(financing => {
+                              const nb = totals.byFinancement[financing]?.Nb || 0;
+                              const loyer = totals.byFinancement[financing]?.LoyerMensuel || 0;
+                              const moyenne = nb > 0 ? loyer / nb : 0;
+                              
+                              return (
+                                <TableCell key={financing} className="text-center text-purple-700">
+                                  {moyenne > 0 ? `${moyenne.toFixed(0)} €` : '-'}
+                                </TableCell>
+                              );
+                            })}
                           </TableRow>
                         </TableBody>
                       </Table>
