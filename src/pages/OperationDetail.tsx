@@ -472,9 +472,6 @@ const OperationDetail = () => {
                 {/* Onglet Nombre de logements */}
                 <TabsContent value="logements" className="space-y-4 animate-fade-in">
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-blue-900 mb-4 text-center">
-                      NOMBRE DE LOTS PAR TYPOLOGIE ET FINANCEMENT
-                    </h3>
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -516,9 +513,7 @@ const OperationDetail = () => {
                 <TabsContent value="surfaces" className="space-y-6 animate-fade-in">
                   {/* Surface Utile */}
                   <div className="bg-green-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-900 mb-4 text-center">
-                      SURFACE UTILE (m²) PAR TYPOLOGIE ET FINANCEMENT
-                    </h4>
+                    <h4 className="font-semibold text-green-900 mb-4">Surface Utile (m²)</h4>
                     <div className="overflow-x-auto">
                       <Table>
                       <TableHeader>
@@ -557,9 +552,7 @@ const OperationDetail = () => {
 
                   {/* Surface Habitable */}
                   <div className="bg-orange-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-900 mb-4 text-center">
-                      SURFACE HABITABLE (m²) PAR TYPOLOGIE ET FINANCEMENT
-                    </h4>
+                    <h4 className="font-semibold text-orange-900 mb-4">Surface Habitable (m²)</h4>
                     <div className="overflow-x-auto">
                       <Table>
                       <TableHeader>
@@ -600,9 +593,6 @@ const OperationDetail = () => {
                 {/* Onglet Loyers */}
                 <TabsContent value="loyers" className="space-y-4 animate-fade-in">
                   <div className="bg-purple-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-purple-900 mb-4 text-center">
-                      LOYERS MOYENS MENSUELS (€) PAR TYPOLOGIE ET FINANCEMENT
-                    </h3>
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
