@@ -16,6 +16,7 @@ const OperationDetail = () => {
   const {
     typologyData,
     prixRevientData,
+    programCaracData,
     simulations,
     selectedSimulation,
     setSelectedSimulation,
@@ -111,6 +112,7 @@ const OperationDetail = () => {
             <TabsContent value="logements" className="space-y-6 mt-6">
               <ProgramComposition
                 typologyData={typologyData}
+                programCaracData={programCaracData}
                 totals={totals}
                 loading={loading}
               />

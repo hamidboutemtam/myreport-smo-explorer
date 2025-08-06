@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export const useOperationData = (operationId: string | undefined) => {
   const [typologyData, setTypologyData] = useState<TypologyData[]>([]);
   const [prixRevientData, setPrixRevientData] = useState<PrixRevientData[]>([]);
+  const [programCaracData, setProgramCaracData] = useState<any[]>([]);
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [selectedSimulation, setSelectedSimulation] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -132,6 +133,36 @@ export const useOperationData = (operationId: string | undefined) => {
     }
   };
 
+  const fetchProgramCaracData = async () => {
+    if (!operationId || !selectedSimulation) return;
+
+    try {
+      console.log('Fetching program characteristics data for simulation:', selectedSimulation);
+      
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracPrg?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const allData = await fetchAllPages(baseUrl);
+      
+      console.log('Program characteristics data received:', allData);
+      setProgramCaracData(allData || []);
+    } catch (error) {
+      console.error('Error fetching program characteristics data:', error);
+      // Essayer sans le filtre de simulation si ça échoue
+      try {
+        console.log('Retrying program characteristics without simulation filter...');
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracPrg?$filter=Code_Projet eq '${operationId}'`;
+        const allData = await fetchAllPages(baseUrl);
+        
+        // Filtrer côté client
+        const filteredData = allData.filter((item: any) => item.Code_Simulation === selectedSimulation);
+        console.log('Filtered program characteristics data:', filteredData);
+        setProgramCaracData(filteredData || []);
+      } catch (retryError) {
+        console.error('Program characteristics retry failed:', retryError);
+        setProgramCaracData([]);
+      }
+    }
+  };
+
   const fetchPrixRevientData = async () => {
     if (!operationId || !selectedSimulation) return;
 
@@ -173,7 +204,8 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       await Promise.all([
         fetchTypologyData(),
-        fetchPrixRevientData()
+        fetchPrixRevientData(),
+        fetchProgramCaracData()
       ]);
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -196,6 +228,7 @@ export const useOperationData = (operationId: string | undefined) => {
   return {
     typologyData,
     prixRevientData,
+    programCaracData,
     simulations,
     selectedSimulation,
     setSelectedSimulation,

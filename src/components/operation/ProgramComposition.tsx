@@ -7,28 +7,50 @@ import { TypologyData, TypologyTotals } from '@/types/operation';
 
 interface ProgramCompositionProps {
   typologyData: TypologyData[];
+  programCaracData: any[];
   totals: TypologyTotals;
   loading: boolean;
 }
 
 export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
   typologyData,
+  programCaracData,
   totals,
   loading
 }) => {
+  // Créer un mapping des codes programmes vers leurs caractéristiques
+  const programMapping = React.useMemo(() => {
+    if (!programCaracData || programCaracData.length === 0) return {};
+    
+    return programCaracData.reduce((acc, program) => {
+      acc[program.Code_Programme] = {
+        NatureFinancement: program.NatureFinancement || program.Code_Programme,
+        LibelleProgramme: program.LibelleProgramme || program.Code_Programme,
+        ...program
+      };
+      return acc;
+    }, {} as Record<string, any>);
+  }, [programCaracData]);
+
   // Calculer les totaux par nature de financement
   const financingTotals = React.useMemo(() => {
     if (!typologyData || typologyData.length === 0) return {};
     
     return typologyData.reduce((acc, row) => {
-      const financing = row.Code_Programme || 'Non défini';
+      const programCode = row.Code_Programme || 'Non défini';
+      const programInfo = programMapping[programCode];
+      
+      // Utiliser la nature de financement des données croisées ou le code programme par défaut
+      const financing = programInfo?.NatureFinancement || programCode;
+      
       if (!acc[financing]) {
         acc[financing] = {
           Nb: 0,
           Shab: 0,
           Su: 0,
           ProdLocLoyerRet: 0,
-          SurfAnnexes: 0
+          SurfAnnexes: 0,
+          LibelleProgramme: programInfo?.LibelleProgramme || financing
         };
       }
       
@@ -40,8 +62,8 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
       acc[financing].SurfAnnexes += (row.Su - row.Shab);
       
       return acc;
-    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number; SurfAnnexes: number }>);
-  }, [typologyData]);
+    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number; SurfAnnexes: number; LibelleProgramme: string }>);
+  }, [typologyData, programMapping]);
 
   if (loading) {
     return (
