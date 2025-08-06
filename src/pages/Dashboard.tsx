@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2 } from 'lucide-react';
+import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2, Search } from 'lucide-react';
 import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [selectedSimulations, setSelectedSimulations] = useState<{ [operationId: string]: string }>({});
+  const [searchTerm, setSearchTerm] = useState('');
   
   const navigate = useNavigate();
 
@@ -178,6 +179,19 @@ const Dashboard = () => {
     {} as { [key: string]: Operation[] }
   );
 
+  // Filter operations by search term
+  const filteredGroupedOperations: { [key: string]: Operation[] } = Object.fromEntries(
+    Object.entries(groupedOperations).filter(([label, operations]) => {
+      if (!searchTerm) return true;
+      return label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             operations.some(op => 
+               op.adresseoperation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               op.commune?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               op.responsable?.toLowerCase().includes(searchTerm.toLowerCase())
+             );
+    })
+  );
+
   // Get unique communes and other filter values
   const communes = [...new Set(operations.flatMap(op => (op.simulations || []).map(sim => sim.commune)))];
   const natureConstructions = [...new Set(operations.map(op => op.natureconstruction).filter(Boolean))];
@@ -246,28 +260,51 @@ const Dashboard = () => {
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              <span>Filtres</span>
-            </Button>
-            
-            {Object.keys(filters).length > 0 && (
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm"
-                onClick={resetFilters}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
               >
-                <X className="h-4 w-4 mr-1" />
-                <span>Réinitialiser</span>
+                <Filter className="h-4 w-4" />
+                <span>Filtres</span>
               </Button>
-            )}
+              
+              {Object.keys(filters).length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={resetFilters}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  <span>Réinitialiser</span>
+                </Button>
+              )}
+            </div>
+
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Rechercher une opération..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
             
             {/* Display active filters */}
             {Object.entries(filters).map(([key, value]) => {
@@ -295,7 +332,12 @@ const Dashboard = () => {
             </Button>
             
             <div className="text-sm text-gray-500">
-              {operations.length} opération{operations.length !== 1 ? 's' : ''} trouvée{operations.length !== 1 ? 's' : ''}
+              {Object.keys(filteredGroupedOperations).length} groupe{Object.keys(filteredGroupedOperations).length !== 1 ? 's' : ''} • {Object.values(filteredGroupedOperations).flat().length} opération{Object.values(filteredGroupedOperations).flat().length !== 1 ? 's' : ''}
+              {searchTerm && (
+                <span className="ml-2 text-blue-600">
+                  (recherche: "{searchTerm}")
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -375,18 +417,30 @@ const Dashboard = () => {
         <div className="space-y-8">
 
           {/* Display operations progressively */}
-          {operations.length === 0 && !loading ? (
+          {Object.keys(filteredGroupedOperations).length === 0 && !loading ? (
             <Card className="bg-gray-50 border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-gray-500 mb-4">Aucune opération ne correspond aux critères de recherche</p>
-                <Button variant="outline" onClick={resetFilters}>
-                  Réinitialiser les filtres
-                </Button>
+                <p className="text-gray-500 mb-4">
+                  {searchTerm ? 
+                    `Aucune opération ne correspond à la recherche "${searchTerm}"` : 
+                    'Aucune opération ne correspond aux critères de recherche'
+                  }
+                </p>
+                <div className="flex gap-2">
+                  {searchTerm && (
+                    <Button variant="outline" onClick={() => setSearchTerm('')}>
+                      Effacer la recherche
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={resetFilters}>
+                    Réinitialiser les filtres
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : (
             <>
-              {Object.entries(groupedOperations).map(([label, operations]) => {
+              {Object.entries(filteredGroupedOperations).map(([label, operations]) => {
                 const operationType = getOperationType(label);
                 return (
                   <Card key={label} className="data-card overflow-hidden">
