@@ -92,17 +92,69 @@ const transformApiData = (apiData: ApiOperationData[]): Operation[] => {
 // Get operations with optional filters
 export const getOperations = async (filters?: OperationFilters): Promise<Operation[]> => {
   try {
-    const response = await fetch(API_BASE_URL, {
-      method: 'GET',
-      headers: getAuthHeader(),
-    });
+    // Temporarily using mock data until API connectivity is resolved
+    console.warn('Using mock data - API endpoint not accessible from browser');
+    
+    const mockApiData: ApiOperationData[] = [
+      {
+        Code_Projet: "00000129",
+        Code_Simulation: "10-10-2016",
+        LibelleOperation: "RESIDENCE LE CHANTEBOIS réhabilitation",
+        LibelleSimulation: " Programmation OCT 2016",
+        DateCreation: "2016-10-10",
+        DateModif: "2017-04-07",
+        DateValeur: "2016-04-28",
+        SimulDefaut: false,
+        Commune: "Champagne-Au-Mont-D_Or",
+        CodePostal: "69410",
+        AdresseOperation: "1 17 rue du Docteur Jean Sauzay",
+        NumeroInsee: "69040",
+        Zone123: "2",
+        ZoneABC: "A",
+        Proprietaire: "DCLEMENT",
+        RespBudget: "DCLEMENT",
+        NatureConstruction: "Réhabilitation",
+        AnneeDeFinancement: 2017,
+        Delegataire: "Métropole de Lyon",
+        EPCI: "Métropole de Lyon",
+        SurfaceTerrain: 0,
+        SurfaceHON: 0,
+        DateOS: "2017-11-01",
+        DureeChantier: 12,
+        DateAchevTrav: "2018-11-01",
+        id: "00000129.10-10-2016"
+      },
+      {
+        Code_Projet: "00000130",
+        Code_Simulation: "15-12-2017",
+        LibelleOperation: "RESIDENCE LE CHANTEBOIS réhabilitation",
+        LibelleSimulation: " Programmation DEC 2017",
+        DateCreation: "2017-12-15",
+        DateModif: "2018-02-10",
+        DateValeur: "2017-12-01",
+        SimulDefaut: true,
+        Commune: "Champagne-Au-Mont-D_Or",
+        CodePostal: "69410",
+        AdresseOperation: "1 17 rue du Docteur Jean Sauzay",
+        NumeroInsee: "69040",
+        Zone123: "2",
+        ZoneABC: "A",
+        Proprietaire: "DCLEMENT",
+        RespBudget: "DCLEMENT",
+        NatureConstruction: "Réhabilitation",
+        AnneeDeFinancement: 2018,
+        Delegataire: "Métropole de Lyon",
+        EPCI: "Métropole de Lyon",
+        SurfaceTerrain: 0,
+        SurfaceHON: 0,
+        DateOS: "2018-06-01",
+        DureeChantier: 10,
+        DateAchevTrav: "2019-04-01",
+        id: "00000130.15-12-2017"
+      }
+    ];
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const apiData: ApiOperationData[] = await response.json();
-    let operations = transformApiData(apiData);
+    let operations = transformApiData(mockApiData);
 
     // Apply filters if provided
     if (filters) {
