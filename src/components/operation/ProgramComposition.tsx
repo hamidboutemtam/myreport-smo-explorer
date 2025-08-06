@@ -16,6 +16,30 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
   totals,
   loading
 }) => {
+  // Calculer les totaux par nature de financement
+  const financingTotals = React.useMemo(() => {
+    if (!typologyData || typologyData.length === 0) return {};
+    
+    return typologyData.reduce((acc, row) => {
+      const financing = row.Type || 'Non défini';
+      if (!acc[financing]) {
+        acc[financing] = {
+          Nb: 0,
+          Shab: 0,
+          Su: 0,
+          ProdLocLoyerRet: 0
+        };
+      }
+      
+      acc[financing].Nb += row.Nb;
+      acc[financing].Shab += row.Shab;
+      acc[financing].Su += row.Su;
+      acc[financing].ProdLocLoyerRet += row.ProdLocLoyerRet;
+      
+      return acc;
+    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number }>);
+  }, [typologyData]);
+
   if (loading) {
     return (
       <Card className="border-0 bg-card/60 backdrop-blur-sm">
@@ -107,62 +131,118 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="font-semibold">Typologie</TableHead>
-                <TableHead className="text-right font-semibold">Nombre</TableHead>
-                <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
-                <TableHead className="text-right font-semibold">SU (m²)</TableHead>
-                <TableHead className="text-right font-semibold">Surf. hab. moy. (m²)</TableHead>
-                <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {typologyData.map((row, index) => (
-                <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {row.Type}
-                      </Badge>
-                      {row.Designation}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-semibold">
+        {/* Tableau récapitulatif par nature de financement */}
+        {Object.keys(financingTotals).length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Euro className="w-5 h-5 text-primary" />
+              Répartition par nature de financement
+            </h3>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Nature de financement</TableHead>
+                    <TableHead className="text-right font-semibold">Nombre</TableHead>
+                    <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">SU (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Surf. hab. moy. (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(financingTotals).map(([financing, data]) => (
+                    <TableRow key={financing} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">
+                        <Badge variant="outline" className="text-xs">
+                          {financing}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        <div className="flex items-center justify-end gap-1">
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          {data.Nb}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{data.Shab.toFixed(1)}</TableCell>
+                      <TableCell className="text-right">{data.Su.toFixed(1)}</TableCell>
+                      <TableCell className="text-right">
+                        {data.Nb > 0 ? (data.Shab / data.Nb).toFixed(1) : '0.0'}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {data.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {/* Tableau détaillé par typologie */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Home className="w-5 h-5 text-primary" />
+            Détail par typologie
+          </h3>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Typologie</TableHead>
+                  <TableHead className="text-right font-semibold">Nombre</TableHead>
+                  <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
+                  <TableHead className="text-right font-semibold">SU (m²)</TableHead>
+                  <TableHead className="text-right font-semibold">Surf. hab. moy. (m²)</TableHead>
+                  <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {typologyData.map((row, index) => (
+                  <TableRow key={index} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {row.Type}
+                        </Badge>
+                        {row.Designation}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      <div className="flex items-center justify-end gap-1">
+                        <Users className="w-3 h-3 text-muted-foreground" />
+                        {row.Nb}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">{row.Shab.toFixed(1)}</TableCell>
+                    <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
+                    <TableCell className="text-right">{row.SurfHabMoy.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-primary/5 font-semibold border-t-2 border-primary/20">
+                  <TableCell className="font-bold">TOTAL</TableCell>
+                  <TableCell className="text-right font-bold">
                     <div className="flex items-center justify-end gap-1">
-                      <Users className="w-3 h-3 text-muted-foreground" />
-                      {row.Nb}
+                      <Users className="w-3 h-3 text-primary" />
+                      {totals.total.Nb}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">{row.Shab.toFixed(1)}</TableCell>
-                  <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
-                  <TableCell className="text-right">{row.SurfHabMoy.toFixed(1)}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                  <TableCell className="text-right font-bold">{totals.total.Shab.toFixed(1)}</TableCell>
+                  <TableCell className="text-right font-bold">{totals.total.Su.toFixed(1)}</TableCell>
+                  <TableCell className="text-right font-bold">
+                    {totals.total.Nb > 0 ? (totals.total.Shab / totals.total.Nb).toFixed(1) : '0.0'}
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-primary">
+                    {totals.total.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                   </TableCell>
                 </TableRow>
-              ))}
-              <TableRow className="bg-primary/5 font-semibold border-t-2 border-primary/20">
-                <TableCell className="font-bold">TOTAL</TableCell>
-                <TableCell className="text-right font-bold">
-                  <div className="flex items-center justify-end gap-1">
-                    <Users className="w-3 h-3 text-primary" />
-                    {totals.total.Nb}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right font-bold">{totals.total.Shab.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-bold">{totals.total.Su.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-bold">
-                  {totals.total.Nb > 0 ? (totals.total.Shab / totals.total.Nb).toFixed(1) : '0.0'}
-                </TableCell>
-                <TableCell className="text-right font-bold text-primary">
-                  {totals.total.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </CardContent>
     </Card>
