@@ -9,14 +9,13 @@ interface BudgetSectionProps {
   prixRevientData: PrixRevientData[];
   totals: TypologyTotals;
   loading: boolean;
-  onChapterSelect: (chapter: string) => void;
+  // onChapterSelect removed since we no longer use it
 }
 
 export const BudgetSection: React.FC<BudgetSectionProps> = ({
   prixRevientData,
   totals,
-  loading,
-  onChapterSelect
+  loading
 }) => {
   // Suppression des onglets - plus besoin d'activeTab ni selectedChapter pour les onglets
   const [selectedRatio, setSelectedRatio] = useState<string | null>(null);
