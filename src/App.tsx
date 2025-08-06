@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import OperationDetail from "./pages/OperationDetail";
 import Exports from "./pages/Exports";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/operation/:operationId" element={
+              <ProtectedRoute>
+                <OperationDetail />
               </ProtectedRoute>
             } />
             <Route path="/exports" element={

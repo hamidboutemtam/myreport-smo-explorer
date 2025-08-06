@@ -518,7 +518,11 @@ const Dashboard = () => {
                 const mostRecentDate = getMostRecentDate(firstOperation);
                 
                 return (
-                  <Card key={label} className={`data-card overflow-hidden ${operationType.borderColor} shadow-sm hover:shadow-md transition-shadow duration-200`}>
+                  <Card 
+                    key={label} 
+                    className={`data-card overflow-hidden ${operationType.borderColor} shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer`}
+                    onClick={() => navigate(`/operation/${firstOperation.id}`)}
+                  >
                     <CardHeader className="bg-gray-50 space-y-4">
                       {/* Titre et badge type */}
                       <div className="flex items-center justify-between">
