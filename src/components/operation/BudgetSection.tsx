@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, PieChart, Euro } from 'lucide-react';
-import { PriceChart } from './PriceChart';
-import { PriceTable } from './PriceTable';
+import { Calculator, Euro } from 'lucide-react';
 import { PrixRevientData, PrixRevientTableRow, PrixRevientChartData, TypologyTotals } from '@/types/operation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +18,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
   loading,
   onChapterSelect
 }) => {
-  const [activeTab, setActiveTab] = useState('graphique');
-  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  // Suppression des onglets - plus besoin d'activeTab ni selectedChapter pour les onglets
   const [selectedRatio, setSelectedRatio] = useState<string | null>(null);
 
   if (loading) {
@@ -73,21 +69,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
     financier: item.FraisFinancierFisc || 0,
     total: item.TotalFisc || 0
   }));
-
-  // Calcul des données pour le graphique
-  const prixRevientChart: PrixRevientChartData[] = [
-    { name: "Charge foncière", value: prixRevientTable.reduce((sum, row) => sum + row.foncier, 0) },
-    { name: "Coût travaux", value: prixRevientTable.reduce((sum, row) => sum + row.travaux, 0) },
-    { name: "Honoraires", value: prixRevientTable.reduce((sum, row) => sum + row.honoraires, 0) },
-    { name: "Actualisation", value: prixRevientTable.reduce((sum, row) => sum + row.actualisation, 0) },
-    { name: "Frais financiers", value: prixRevientTable.reduce((sum, row) => sum + row.financier, 0) }
-  ].filter(item => item.value > 0);
-
-  const handleChapterClick = (chapterName: string) => {
-    setSelectedChapter(chapterName);
-    setActiveTab('detail');
-    onChapterSelect(chapterName);
-  };
 
   const handleRatioClick = (ratioType: string) => {
     setSelectedRatio(selectedRatio === ratioType ? null : ratioType);
@@ -354,54 +335,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
             </div>
           </div>
         )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-8">
-            <TabsTrigger value="graphique" className="text-xs">
-              <PieChart className="w-3 h-3 mr-1" />
-              Vue synthèse
-            </TabsTrigger>
-            <TabsTrigger value="detail" className="text-xs">
-              <Calculator className="w-3 h-3 mr-1" />
-              Détail
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="graphique" className="space-y-3 mt-4">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <PriceChart data={prixRevientChart} onChapterClick={handleChapterClick} />
-              
-              {/* Résumé compact */}
-              <div className="lg:w-72">
-                <div className="space-y-1">
-                  {prixRevientChart.map((item, index) => (
-                    <div 
-                      key={item.name} 
-                      className="flex items-center justify-between p-2 hover:bg-muted/50 rounded transition-colors cursor-pointer text-sm"
-                      onClick={() => handleChapterClick(item.name)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
-                        />
-                        <span className="text-xs">{item.name}</span>
-                      </div>
-                      <span className="font-medium text-xs">
-                        {item.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="detail" className="space-y-3 mt-4">
-            <PriceTable data={prixRevientTable} selectedChapter={selectedChapter} />
-          </TabsContent>
-
-        </Tabs>
       </CardContent>
     </Card>
   );
