@@ -759,179 +759,177 @@ const OperationDetail = () => {
 
         {/* Budget de l'opération - Prix de revient */}
         {selectedSimulation && !loading && prixRevientData.length > 0 && (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-orange-600" />
-                Budget de l'opération - Prix de revient (LASM)
+          <Card className="border-0 bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <Calculator className="w-4 h-4" />
+                Budget de l'opération
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <Tabs value={prixRevientTab} onValueChange={setPrixRevientTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="graphique" className="flex items-center gap-2">
-                    <PieChart className="w-4 h-4" />
-                    Graphique
+                <TabsList className="grid w-full grid-cols-2 h-8">
+                  <TabsTrigger value="graphique" className="text-xs">
+                    <PieChart className="w-3 h-3 mr-1" />
+                    Vue synthèse
                   </TabsTrigger>
-                  <TabsTrigger value="detail" className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4" />
-                    Détail par financement
+                  <TabsTrigger value="detail" className="text-xs">
+                    <Calculator className="w-3 h-3 mr-1" />
+                    Détail
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Onglet Graphique */}
-                <TabsContent value="graphique" className="space-y-4 animate-fade-in">
-                  <div className="bg-orange-50 rounded-lg p-6">
-                    <div className="flex flex-col lg:flex-row gap-6">
-                      {/* Graphique */}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                          Répartition des montants fiscalisés par chapitre
-                        </h3>
-                        <div className="h-80">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
-                              <Pie
-                                data={prixRevientChart}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                label={({ name, percentage }) => `${name} (${percentage}%)`}
-                                outerRadius={100}
-                                fill="#8884d8"
-                                dataKey="value"
-                                onClick={(data) => {
-                                  setSelectedChapter(data.name);
-                                  setPrixRevientTab('detail');
-                                }}
-                                className="cursor-pointer"
-                              >
-                                {prixRevientChart.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                              </Pie>
-                              <Tooltip 
-                                formatter={(value: number) => [`${value.toLocaleString()} €`, 'Montant']}
-                              />
-                              <Legend />
-                            </RechartsPieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-
-                      {/* Résumé des montants */}
-                      <div className="lg:w-80">
-                        <h4 className="text-md font-semibold text-gray-700 mb-3">Montants par chapitre</h4>
-                        <div className="space-y-2">
-                          {prixRevientChart.map((item, index) => (
-                            <div 
-                              key={item.name} 
-                              className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200 hover:bg-orange-50 transition-colors cursor-pointer"
-                              onClick={() => {
-                                setSelectedChapter(item.name);
+                <TabsContent value="graphique" className="space-y-3 mt-4">
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Graphique compact */}
+                    <div className="flex-1">
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsPieChart>
+                            <Pie
+                              data={prixRevientChart}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={30}
+                              outerRadius={70}
+                              dataKey="value"
+                              onClick={(data) => {
+                                setSelectedChapter(data.name);
                                 setPrixRevientTab('detail');
                               }}
+                              className="cursor-pointer"
                             >
-                              <div className="flex items-center gap-2">
-                                <div 
-                                  className="w-4 h-4 rounded"
-                                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                ></div>
-                                <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-semibold text-gray-900">{item.value.toLocaleString()} €</div>
-                                <div className="text-xs text-gray-500">{item.percentage}%</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                              {prixRevientChart.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                                  stroke="white"
+                                  strokeWidth={1}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              formatter={(value: number) => [`${value.toLocaleString()} €`]}
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--popover))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '6px',
+                                fontSize: '12px'
+                              }}
+                            />
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
-                    <div className="mt-4 text-center text-sm text-gray-600">
-                      💡 Cliquez sur un segment du graphique ou un chapitre pour voir le détail par financement
+
+                    {/* Résumé compact */}
+                    <div className="lg:w-72">
+                      <div className="space-y-1">
+                        {prixRevientChart.map((item, index) => (
+                          <div 
+                            key={item.name} 
+                            className="flex items-center justify-between p-2 hover:bg-muted/50 rounded transition-colors cursor-pointer text-sm"
+                            onClick={() => {
+                              setSelectedChapter(item.name);
+                              setPrixRevientTab('detail');
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-sm"
+                                style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                              />
+                              <span className="text-foreground">{item.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium">{item.value.toLocaleString()} €</div>
+                              <div className="text-xs text-muted-foreground">{item.percentage}%</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  </div>
+                  <div className="text-center text-xs text-muted-foreground">
+                    Cliquez sur un segment pour voir le détail
                   </div>
                 </TabsContent>
 
                 {/* Onglet Détail */}
-                <TabsContent value="detail" className="space-y-4 animate-fade-in">
-                  <div className="bg-orange-50 rounded-lg p-4">
-                    {selectedChapter && (
-                      <div className="mb-4 p-3 bg-orange-100 rounded-lg border border-orange-200">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-orange-800">
-                            Focus sur: <strong>{selectedChapter}</strong>
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedChapter(null)}
-                            className="text-xs"
-                          >
-                            Voir tous les chapitres
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="overflow-x-auto">
-                      <Table className="table-compact">
-                        <TableHeader>
-                          <TableRow className="bg-orange-100/50 h-8">
-                            <TableHead className="font-semibold text-gray-700 text-xs py-2 px-3">Chapitre</TableHead>
-                            {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px] text-xs py-2 px-2">
-                                {financing}
-                              </TableHead>
-                            ))}
-                            <TableHead className="font-semibold text-center text-gray-700 min-w-[100px] text-xs py-2 px-2">
-                              Total
+                <TabsContent value="detail" className="space-y-3 mt-4">
+                  {selectedChapter && (
+                    <div className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
+                      <span>
+                        Focus: <span className="font-medium">{selectedChapter}</span>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedChapter(null)}
+                        className="h-6 text-xs"
+                      >
+                        Tout voir
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="h-8">
+                          <TableHead className="text-xs py-1 px-2">Chapitre</TableHead>
+                          {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => (
+                            <TableHead key={financing} className="text-center text-xs py-1 px-2 min-w-[100px]">
+                              {financing}
                             </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {prixRevientTable
-                            .filter(row => !selectedChapter || row.chapitre === selectedChapter)
-                            .map((row, index) => (
-                            <TableRow key={index} className={`h-8 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                              <TableCell className="font-medium text-gray-900 text-sm py-1 px-3">
-                                {row.chapitre}
-                              </TableCell>
-                              {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => (
-                                <TableCell key={financing} className="text-center text-sm py-1 px-2">
-                                  {row[financing] ? `${row[financing].toLocaleString()} €` : '-'}
-                                </TableCell>
-                              ))}
-                              <TableCell className="text-center font-semibold text-orange-700 text-sm py-1 px-2">
-                                {row.total.toLocaleString()} €
-                              </TableCell>
-                            </TableRow>
                           ))}
-                          
-                          {/* Ligne total */}
-                          <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200 h-8">
-                            <TableCell className="text-gray-900 text-sm py-1 px-3">Total</TableCell>
-                            {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => {
-                              const total = prixRevientTable
-                                .filter(row => !selectedChapter || row.chapitre === selectedChapter)
-                                .reduce((sum, row) => sum + (row[financing] || 0), 0);
-                              return (
-                                <TableCell key={financing} className="text-center text-orange-700 text-sm py-1 px-2">
-                                  {total.toLocaleString()} €
-                                </TableCell>
-                              );
-                            })}
-                            <TableCell className="text-center text-orange-700 font-bold text-sm py-1 px-2">
-                              {prixRevientTable
-                                .filter(row => !selectedChapter || row.chapitre === selectedChapter)
-                                .reduce((sum, row) => sum + row.total, 0)
-                                .toLocaleString()} €
+                          <TableHead className="text-center text-xs py-1 px-2 min-w-[80px]">
+                            Total
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {prixRevientTable
+                          .filter(row => !selectedChapter || row.chapitre === selectedChapter)
+                          .map((row, index) => (
+                          <TableRow key={index} className="h-7">
+                            <TableCell className="text-xs py-1 px-2 font-medium">
+                              {row.chapitre}
+                            </TableCell>
+                            {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => (
+                              <TableCell key={financing} className="text-center text-xs py-1 px-2">
+                                {row[financing] ? `${row[financing].toLocaleString()} €` : '-'}
+                              </TableCell>
+                            ))}
+                            <TableCell className="text-center font-medium text-xs py-1 px-2">
+                              {row.total.toLocaleString()} €
                             </TableCell>
                           </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
+                        ))}
+                        
+                        {/* Ligne total */}
+                        <TableRow className="bg-muted/50 border-t h-7">
+                          <TableCell className="text-xs py-1 px-2 font-semibold">Total</TableCell>
+                          {[...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))].map(financing => {
+                            const total = prixRevientTable
+                              .filter(row => !selectedChapter || row.chapitre === selectedChapter)
+                              .reduce((sum, row) => sum + (row[financing] || 0), 0);
+                            return (
+                              <TableCell key={financing} className="text-center text-xs py-1 px-2 font-medium">
+                                {total.toLocaleString()} €
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell className="text-center font-semibold text-xs py-1 px-2">
+                            {prixRevientTable
+                              .filter(row => !selectedChapter || row.chapitre === selectedChapter)
+                              .reduce((sum, row) => sum + row.total, 0)
+                              .toLocaleString()} €
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </div>
                 </TabsContent>
               </Tabs>
