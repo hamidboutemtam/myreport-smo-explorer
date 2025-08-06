@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin, Euro } from 'lucide-react';
+import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin, Euro, Users, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TypologyData {
@@ -301,6 +301,53 @@ const OperationDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Étiquettes récapitulatives */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-500 rounded-full p-2">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600 font-medium">Total Logements</p>
+                      <p className="text-2xl font-bold text-blue-900">{totals.total.Nb}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-500 rounded-full p-2">
+                      <Square className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600 font-medium">Surfaces Totales</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        {totals.total.Shab.toFixed(0)} m²
+                      </p>
+                      <p className="text-xs text-green-600">
+                        SU: {totals.total.Su.toFixed(0)} m²
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-500 rounded-full p-2">
+                      <Euro className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-purple-600 font-medium">Loyers Totaux</p>
+                      <p className="text-2xl font-bold text-purple-900">
+                        {totals.total.LoyerMensuel.toFixed(0)} €
+                      </p>
+                      <p className="text-xs text-purple-600">par mois</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <Tabs defaultValue="logements" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="logements" className="flex items-center gap-2">
