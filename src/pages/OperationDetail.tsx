@@ -20,7 +20,7 @@ interface TypologyData {
   Shab: number;
   Su: number;
   LRetModule: number;
-  ProdLocModule: number;
+  ProdLocLoyerRet: number;
 }
 
 interface Simulation {
@@ -152,7 +152,7 @@ const OperationDetail = () => {
       Nb: item.Nb,
       Su: item.Su,
       Shab: item.Shab,
-      LoyerMensuel: item.LRetModule || 0
+      LoyerMensuel: item.ProdLocLoyerRet || 0
     };
     return acc;
   }, {} as any);
@@ -176,14 +176,14 @@ const OperationDetail = () => {
       totals.byFinancement[financingNature].Nb += item.Nb;
       totals.byFinancement[financingNature].Su += item.Su;
       totals.byFinancement[financingNature].Shab += item.Shab;
-      if (item.LRetModule && item.Nb > 0) {
-        totals.byFinancement[financingNature].LoyerMensuel += item.LRetModule;
+      if (item.ProdLocLoyerRet && item.Nb > 0) {
+        totals.byFinancement[financingNature].LoyerMensuel += item.ProdLocLoyerRet;
       }
       totals.total.Nb += item.Nb;
       totals.total.Su += item.Su;
       totals.total.Shab += item.Shab;
-      if (item.LRetModule) {
-        totals.total.LoyerMensuel += item.LRetModule;
+      if (item.ProdLocLoyerRet) {
+        totals.total.LoyerMensuel += item.ProdLocLoyerRet;
       }
     });
 
