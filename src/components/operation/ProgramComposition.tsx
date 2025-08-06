@@ -48,6 +48,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
           Nb: 0,
           Shab: 0,
           Su: 0,
+          LRet: 0,
           ProdLocLoyerRet: 0,
           SurfAnnexes: 0,
           LibelleProgramme: programInfo?.LibelleProgramme || financing
@@ -57,12 +58,13 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
       acc[financing].Nb += row.Nb;
       acc[financing].Shab += row.Shab;
       acc[financing].Su += row.Su;
+      acc[financing].LRet = row.LRetModule || 0; // Prendre le loyer retenu modulé
       acc[financing].ProdLocLoyerRet += row.ProdLocLoyerRet;
       // Calculer les annexes comme SU - SHAB
       acc[financing].SurfAnnexes += (row.Su - row.Shab);
       
       return acc;
-    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number; SurfAnnexes: number; LibelleProgramme: string }>);
+    }, {} as Record<string, { Nb: number; Shab: number; Su: number; LRet: number; ProdLocLoyerRet: number; SurfAnnexes: number; LibelleProgramme: string }>);
   }, [typologyData, programMapping]);
 
   if (loading) {
@@ -172,6 +174,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                     <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
                     <TableHead className="text-right font-semibold">SU (m²)</TableHead>
                     <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Loyer retenu (€/m²)</TableHead>
                     <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -193,6 +196,9 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                       <TableCell className="text-right">{data.Su.toFixed(1)}</TableCell>
                       <TableCell className="text-right">
                         {data.SurfAnnexes.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {data.LRet.toFixed(2)} €
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {data.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
@@ -220,6 +226,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                   <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
                   <TableHead className="text-right font-semibold">SU (m²)</TableHead>
                   <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
+                  <TableHead className="text-right font-semibold">Loyer retenu (€/m²)</TableHead>
                   <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
                 </TableRow>
               </TableHeader>
@@ -244,6 +251,9 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                     <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
                     <TableCell className="text-right">{(row.Su - row.Shab).toFixed(1)}</TableCell>
                     <TableCell className="text-right font-medium">
+                      {row.LRetModule.toFixed(2)} €
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
                       {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                     </TableCell>
                   </TableRow>
@@ -260,6 +270,12 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                   <TableCell className="text-right font-bold">{totals.total.Su.toFixed(1)}</TableCell>
                   <TableCell className="text-right font-bold">
                     {(totals.total.Su - totals.total.Shab).toFixed(1)}
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    {/* Calculer la moyenne pondérée des loyers retenus */}
+                    {typologyData.length > 0 ? 
+                      (typologyData.reduce((sum, row) => sum + (row.LRetModule * row.Su), 0) / totals.total.Su).toFixed(2) 
+                      : '0.00'} €
                   </TableCell>
                   <TableCell className="text-right font-bold text-primary">
                     {totals.total.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
