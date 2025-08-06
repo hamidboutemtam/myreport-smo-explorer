@@ -256,14 +256,15 @@ const Dashboard = () => {
   };
 
   // Determine operation type based on label keywords
-  const getOperationType = (libelle: string): { type: string; icon: any; color: string } => {
+  const getOperationType = (libelle: string): { type: string; icon: any; color: string; borderColor: string } => {
     const libelleLower = libelle.toLowerCase();
     
     if (libelleLower.includes('résidence sociale') || libelleLower.includes('social') || libelleLower.includes('hlm')) {
       return { 
         type: 'Résidence sociale', 
         icon: Users, 
-        color: 'text-blue-600 bg-blue-50' 
+        color: 'text-blue-600 bg-blue-50',
+        borderColor: 'border-l-4 border-l-blue-500'
       };
     }
     
@@ -271,7 +272,8 @@ const Dashboard = () => {
       return { 
         type: 'Réhabilitation', 
         icon: Wrench, 
-        color: 'text-orange-600 bg-orange-50' 
+        color: 'text-orange-600 bg-orange-50',
+        borderColor: 'border-l-4 border-l-orange-500'
       };
     }
     
@@ -280,7 +282,8 @@ const Dashboard = () => {
       return { 
         type: 'Construction neuve', 
         icon: Building, 
-        color: 'text-green-600 bg-green-50' 
+        color: 'text-green-600 bg-green-50',
+        borderColor: 'border-l-4 border-l-green-500'
       };
     }
     
@@ -288,7 +291,8 @@ const Dashboard = () => {
     return { 
       type: 'Construction neuve', 
       icon: Building2, 
-      color: 'text-green-600 bg-green-50' 
+      color: 'text-green-600 bg-green-50',
+      borderColor: 'border-l-4 border-l-green-500'
     };
   };
 
@@ -514,7 +518,7 @@ const Dashboard = () => {
                 const mostRecentDate = getMostRecentDate(firstOperation);
                 
                 return (
-                  <Card key={label} className="data-card overflow-hidden">
+                  <Card key={label} className={`data-card overflow-hidden ${operationType.borderColor} shadow-sm hover:shadow-md transition-shadow duration-200`}>
                     <CardHeader className="bg-gray-50 space-y-4">
                       {/* Titre et badge type */}
                       <div className="flex items-center justify-between">
