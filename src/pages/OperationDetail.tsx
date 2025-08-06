@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Building, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Building, RefreshCw, BarChart3, Home, Ruler, Calendar, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TypologyData {
@@ -187,61 +188,93 @@ const OperationDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header avec navigation */}
+        <div className="flex items-center justify-between">
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:shadow-md transition-shadow"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour au tableau de bord
           </Button>
+          
+          {selectedSimulation && (
+            <Badge variant="secondary" className="text-sm">
+              Simulation active
+            </Badge>
+          )}
         </div>
 
-        {/* Operation Info */}
+        {/* Informations de l'opération */}
         {operationInfo && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="w-5 h-5" />
-                {operationInfo.LibelleOperation}
-              </CardTitle>
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                <span>Commune: {operationInfo.Commune}</span>
-                <span>Adresse: {operationInfo.AdresseOperation}</span>
-                <span>Nature: {operationInfo.NatureConstruction}</span>
+          <Card className="border-l-4 border-l-blue-500 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-xl text-gray-900 mb-2 flex items-center gap-2">
+                    <Building className="w-5 h-5 text-blue-600" />
+                    {operationInfo.LibelleOperation}
+                  </CardTitle>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <div>
+                        <span className="font-medium">{operationInfo.Commune}</span>
+                        {operationInfo.AdresseOperation && (
+                          <div className="text-xs text-gray-500">{operationInfo.AdresseOperation}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Building className="w-4 h-4" />
+                      <span>{operationInfo.NatureConstruction}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>Créé le {new Date(operationInfo.DateCreation).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardHeader>
           </Card>
         )}
 
-        {/* Simulation Selector */}
-        <Card className="mb-6">
+        {/* Sélecteur de simulation */}
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Simulation</CardTitle>
+            <CardTitle className="text-lg">Sélection de simulation</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              <Select value={selectedSimulation} onValueChange={setSelectedSimulation}>
-                <SelectTrigger className="w-full max-w-md">
-                  <SelectValue placeholder="Sélectionnez une simulation" />
-                </SelectTrigger>
-                <SelectContent>
-                  {simulations.map((simulation) => (
-                    <SelectItem key={simulation.Code_Simulation} value={simulation.Code_Simulation}>
-                      {simulation.LibelleSimulation} ({new Date(simulation.DateModif).toLocaleDateString()})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex-1">
+                <Select value={selectedSimulation} onValueChange={setSelectedSimulation}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez une simulation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {simulations.map((simulation) => (
+                      <SelectItem key={simulation.Code_Simulation} value={simulation.Code_Simulation}>
+                        <div className="flex flex-col">
+                          <span>{simulation.LibelleSimulation}</span>
+                          <span className="text-xs text-gray-500">
+                            Modifié le {new Date(simulation.DateModif).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => selectedSimulation && fetchTypologyData(selectedSimulation)}
                 disabled={loading}
+                className="hover:shadow-md transition-shadow"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
@@ -249,159 +282,202 @@ const OperationDetail = () => {
           </CardContent>
         </Card>
 
-        {/* Typology Tables */}
-        {selectedSimulation && (
-          <div className="space-y-6">
-            {/* Number of Units Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-blue-700 bg-blue-100 p-2 rounded">
-                  NOMBRE DE LOTS PAR TYPOLOGIE ET FINANCEMENT
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-blue-50">
-                      <TableHead className="font-semibold">Type</TableHead>
-                      <TableHead className="font-semibold text-center">Total</TableHead>
-                      {financingTypes.map(financing => (
-                        <TableHead key={financing} className="font-semibold text-center">{financing}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Object.values(groupedData).map((row: any, index) => (
-                      <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                        <TableCell className="font-medium">{row.Type}</TableCell>
-                        <TableCell className="text-center font-semibold">
-                          {financingTypes.reduce((sum, financing) => 
-                            sum + (row.byFinancement[financing]?.Nb || 0), 0
-                          )}
-                        </TableCell>
-                        {financingTypes.map(financing => (
-                          <TableCell key={financing} className="text-center">
-                            {row.byFinancement[financing]?.Nb || 0}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                    <TableRow className="bg-blue-100 font-semibold">
-                      <TableCell>Total</TableCell>
-                      <TableCell className="text-center">{totals.total.Nb}</TableCell>
-                      {financingTypes.map(financing => (
-                        <TableCell key={financing} className="text-center">
-                          {totals.byFinancement[financing]?.Nb || 0}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+        {/* Données de typologie avec onglets */}
+        {selectedSimulation && !loading && typologyData.length > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                Composition du programme locatif
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="logements" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="logements" className="flex items-center gap-2">
+                    <Home className="w-4 h-4" />
+                    Nombre de logements
+                  </TabsTrigger>
+                  <TabsTrigger value="surfaces" className="flex items-center gap-2">
+                    <Ruler className="w-4 h-4" />
+                    Surfaces
+                  </TabsTrigger>
+                </TabsList>
 
-            {/* Surface Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-blue-700 bg-blue-100 p-2 rounded">
-                  SURFACES PAR TYPOLOGIE ET FINANCEMENT
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Useful Surface */}
-                  <div>
-                    <h4 className="font-semibold mb-2 text-blue-600">Surface Utile (m²)</h4>
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-blue-50">
-                          <TableHead className="font-semibold">Type</TableHead>
-                          <TableHead className="font-semibold text-center">Total</TableHead>
-                          {financingTypes.map(financing => (
-                            <TableHead key={financing} className="font-semibold text-center">{financing}</TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Object.values(groupedData).map((row: any, index) => (
-                          <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                            <TableCell className="font-medium">{row.Type}</TableCell>
-                            <TableCell className="text-center font-semibold">
-                              {financingTypes.reduce((sum, financing) => 
-                                sum + (row.byFinancement[financing]?.Su || 0), 0
-                              )}
-                            </TableCell>
+                {/* Onglet Nombre de logements */}
+                <TabsContent value="logements" className="space-y-4 animate-fade-in">
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-blue-900 mb-4 text-center">
+                      NOMBRE DE LOTS PAR TYPOLOGIE ET FINANCEMENT
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-blue-100/50">
+                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
                             {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center">
-                                {row.byFinancement[financing]?.Su || 0}
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                              <TableCell className="text-center font-semibold text-blue-600">
+                                {financingTypes.reduce((sum, financing) => 
+                                  sum + (row.byFinancement[financing]?.Nb || 0), 0
+                                )}
+                              </TableCell>
+                              {financingTypes.map(financing => (
+                                <TableCell key={financing} className="text-center">
+                                  {row.byFinancement[financing]?.Nb || 0}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-blue-100 font-semibold border-t-2 border-blue-200">
+                            <TableCell className="text-gray-900">Total</TableCell>
+                            <TableCell className="text-center text-blue-700">{totals.total.Nb}</TableCell>
+                            {financingTypes.map(financing => (
+                              <TableCell key={financing} className="text-center text-blue-700">
+                                {totals.byFinancement[financing]?.Nb || 0}
                               </TableCell>
                             ))}
                           </TableRow>
-                        ))}
-                        <TableRow className="bg-blue-100 font-semibold">
-                          <TableCell>Surface totale</TableCell>
-                          <TableCell className="text-center">{totals.total.Su}</TableCell>
-                          {financingTypes.map(financing => (
-                            <TableCell key={financing} className="text-center">
-                              {totals.byFinancement[financing]?.Su || 0}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
+                </TabsContent>
 
-                  {/* Habitable Surface */}
-                  <div>
-                    <h4 className="font-semibold mb-2 text-blue-600">Surface Habitable (m²)</h4>
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-blue-50">
-                          <TableHead className="font-semibold">Type</TableHead>
-                          <TableHead className="font-semibold text-center">Total</TableHead>
-                          {financingTypes.map(financing => (
-                            <TableHead key={financing} className="font-semibold text-center">{financing}</TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Object.values(groupedData).map((row: any, index) => (
-                          <TableRow key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                            <TableCell className="font-medium">{row.Type}</TableCell>
-                            <TableCell className="text-center font-semibold">
-                              {financingTypes.reduce((sum, financing) => 
-                                sum + (row.byFinancement[financing]?.Shab || 0), 0
-                              )}
-                            </TableCell>
+                {/* Onglet Surfaces */}
+                <TabsContent value="surfaces" className="space-y-6 animate-fade-in">
+                  {/* Surface Utile */}
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-900 mb-4 text-center">
+                      SURFACE UTILE (m²) PAR TYPOLOGIE ET FINANCEMENT
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-green-100/50">
+                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
                             {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center">
-                                {row.byFinancement[financing]?.Shab || 0}
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                              <TableCell className="text-center font-semibold text-green-600">
+                                {financingTypes.reduce((sum, financing) => 
+                                  sum + (row.byFinancement[financing]?.Su || 0), 0
+                                ).toFixed(1)}
+                              </TableCell>
+                              {financingTypes.map(financing => (
+                                <TableCell key={financing} className="text-center">
+                                  {(row.byFinancement[financing]?.Su || 0).toFixed(1)}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200">
+                            <TableCell className="text-gray-900">Surface totale</TableCell>
+                            <TableCell className="text-center text-green-700">{totals.total.Su.toFixed(1)}</TableCell>
+                            {financingTypes.map(financing => (
+                              <TableCell key={financing} className="text-center text-green-700">
+                                {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
                               </TableCell>
                             ))}
                           </TableRow>
-                        ))}
-                        <TableRow className="bg-blue-100 font-semibold">
-                          <TableCell>Surface totale</TableCell>
-                          <TableCell className="text-center">{totals.total.Shab}</TableCell>
-                          {financingTypes.map(financing => (
-                            <TableCell key={financing} className="text-center">
-                              {totals.byFinancement[financing]?.Shab || 0}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                  {/* Surface Habitable */}
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-orange-900 mb-4 text-center">
+                      SURFACE HABITABLE (m²) PAR TYPOLOGIE ET FINANCEMENT
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-orange-100/50">
+                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
+                            {financingTypes.map(financing => (
+                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                                {financing}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.values(groupedData).map((row: any, index) => (
+                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
+                              <TableCell className="text-center font-semibold text-orange-600">
+                                {financingTypes.reduce((sum, financing) => 
+                                  sum + (row.byFinancement[financing]?.Shab || 0), 0
+                                ).toFixed(1)}
+                              </TableCell>
+                              {financingTypes.map(financing => (
+                                <TableCell key={financing} className="text-center">
+                                  {(row.byFinancement[financing]?.Shab || 0).toFixed(1)}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200">
+                            <TableCell className="text-gray-900">Surface totale</TableCell>
+                            <TableCell className="text-center text-orange-700">{totals.total.Shab.toFixed(1)}</TableCell>
+                            {financingTypes.map(financing => (
+                              <TableCell key={financing} className="text-center text-orange-700">
+                                {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         )}
 
+        {/* États de chargement et vide */}
         {loading && (
-          <div className="flex justify-center items-center h-64">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
-          </div>
+          <Card className="shadow-sm">
+            <CardContent className="flex justify-center items-center h-32">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
+                <span className="text-gray-600">Chargement des données...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedSimulation && !loading && typologyData.length === 0 && (
+          <Card className="shadow-sm border-dashed">
+            <CardContent className="flex justify-center items-center h-32">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">Aucune donnée de typologie disponible pour cette simulation</p>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
