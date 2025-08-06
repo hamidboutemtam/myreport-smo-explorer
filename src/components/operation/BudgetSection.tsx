@@ -4,6 +4,7 @@ import { Calculator, Euro } from 'lucide-react';
 import { PrixRevientData, PrixRevientTableRow, PrixRevientChartData, TypologyTotals } from '@/types/operation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface BudgetSectionProps {
   prixRevientData: PrixRevientData[];
@@ -109,10 +110,10 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
         value: value,
         unit: unit,
         details: {
-          foncier: selectedRatio === 'total' ? row.foncier : 
+          chargeFonciere: selectedRatio === 'total' ? row.foncier : 
                    selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.foncier / totals.total.Nb : 0) :
                    selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.foncier / totals.total.Shab : 0) : 0,
-          travaux: selectedRatio === 'total' ? row.travaux : 
+          coutTravaux: selectedRatio === 'total' ? row.travaux : 
                    selectedRatio === 'logement' ? (totals.total.Nb > 0 ? row.travaux / totals.total.Nb : 0) :
                    selectedRatio === 'shab' ? (totals.total.Shab > 0 ? row.travaux / totals.total.Shab : 0) : 0,
           honoraires: selectedRatio === 'total' ? row.honoraires : 
@@ -248,7 +249,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
           </div>
         </div>
 
-        {/* Tableau détaillé par nature de financement */}
+        {/* Tableau détaillé par chapitre avec camembert */}
         {selectedRatio && detailedData.length > 0 && (
           <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between mb-4">
@@ -263,74 +264,160 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
                 Fermer
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Nature de financement</TableHead>
-                    <TableHead className="text-right font-semibold">Charge foncière</TableHead>
-                    <TableHead className="text-right font-semibold">Coût travaux</TableHead>
-                    <TableHead className="text-right font-semibold">Honoraires</TableHead>
-                    <TableHead className="text-right font-semibold">Actualisation</TableHead>
-                    <TableHead className="text-right font-semibold">Frais financiers</TableHead>
-                    <TableHead className="text-right font-semibold">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {detailedData.map((row, index) => (
-                    <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-medium">
-                        <Badge variant="outline" className="text-xs">
-                          {row.programme}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.foncier.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.travaux.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.honoraires.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.actualisation.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {row.details.financier.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
-                        {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {row.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {row.unit}
-                      </TableCell>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Tableau transposé (compact) */}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Chapitre</TableHead>
+                      {detailedData.map((row, index) => (
+                        <TableHead key={index} className="text-center font-semibold">
+                          <Badge variant="outline" className="text-xs">
+                            {row.programme}
+                          </Badge>
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-blue-600">Charge foncière</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.chargeFonciere.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-green-600">Coût travaux</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.coutTravaux.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-purple-600">Honoraires</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.honoraires.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-orange-600">Actualisation</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.actualisation.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium text-red-600">Frais financiers</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center">
+                          {row.details.financier.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {selectedRatio === 'surface' ? 'm²' : '€'}
+                          {selectedRatio !== 'total' && selectedRatio !== 'surface' && (
+                            <span className="text-xs text-muted-foreground block">
+                              /{selectedRatio === 'logement' ? 'lgt' : 'm²'}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow className="hover:bg-muted/30 transition-colors bg-primary/10">
+                      <TableCell className="font-bold">Total</TableCell>
+                      {detailedData.map((row, index) => (
+                        <TableCell key={index} className="text-center font-bold">
+                          {row.value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} {row.unit}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Camembert */}
+              <div className="flex flex-col">
+                <h4 className="text-md font-semibold mb-4 text-center">Répartition du prix de revient total</h4>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={(() => {
+                          const totalChargeFonciere = detailedData.reduce((sum, row) => sum + row.details.chargeFonciere, 0);
+                          const totalCoutTravaux = detailedData.reduce((sum, row) => sum + row.details.coutTravaux, 0);
+                          const totalHonoraires = detailedData.reduce((sum, row) => sum + row.details.honoraires, 0);
+                          const totalActualisation = detailedData.reduce((sum, row) => sum + row.details.actualisation, 0);
+                          const totalFinancier = detailedData.reduce((sum, row) => sum + row.details.financier, 0);
+                          
+                          return [
+                            { name: 'Charge foncière', value: totalChargeFonciere, color: '#3B82F6' },
+                            { name: 'Coût travaux', value: totalCoutTravaux, color: '#10B981' },
+                            { name: 'Honoraires', value: totalHonoraires, color: '#8B5CF6' },
+                            { name: 'Actualisation', value: totalActualisation, color: '#F59E0B' },
+                            { name: 'Frais financiers', value: totalFinancier, color: '#EF4444' }
+                          ].filter(item => item.value > 0);
+                        })()}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {(() => {
+                          const totalChargeFonciere = detailedData.reduce((sum, row) => sum + row.details.chargeFonciere, 0);
+                          const totalCoutTravaux = detailedData.reduce((sum, row) => sum + row.details.coutTravaux, 0);
+                          const totalHonoraires = detailedData.reduce((sum, row) => sum + row.details.honoraires, 0);
+                          const totalActualisation = detailedData.reduce((sum, row) => sum + row.details.actualisation, 0);
+                          const totalFinancier = detailedData.reduce((sum, row) => sum + row.details.financier, 0);
+                          
+                          return [
+                            { name: 'Charge foncière', value: totalChargeFonciere, color: '#3B82F6' },
+                            { name: 'Coût travaux', value: totalCoutTravaux, color: '#10B981' },
+                            { name: 'Honoraires', value: totalHonoraires, color: '#8B5CF6' },
+                            { name: 'Actualisation', value: totalActualisation, color: '#F59E0B' },
+                            { name: 'Frais financiers', value: totalFinancier, color: '#EF4444' }
+                          ].filter(item => item.value > 0);
+                        })().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number) => [
+                          `${value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €`,
+                          'Montant'
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
         )}
