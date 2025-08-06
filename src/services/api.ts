@@ -113,8 +113,11 @@ export const getOperations = async (filters?: OperationFilters): Promise<Operati
     }
 
     console.log('📊 Parsing JSON response...');
-    const apiData: ApiOperationData[] = await response.json();
-    console.log('✅ API Data received:', apiData);
+    const apiResponse = await response.json();
+    console.log('✅ API Response received:', apiResponse);
+    
+    // Extract data from OData format
+    const apiData: ApiOperationData[] = apiResponse.value || apiResponse;
     console.log('📈 Number of items:', apiData?.length || 0);
     
     console.log('🔄 Transforming API data...');
