@@ -122,7 +122,7 @@ const Dashboard = () => {
   );
 
   // Get unique communes for filter
-  const communes = [...new Set(operations.flatMap(op => op.simulations.map(sim => sim.commune)))];
+  const communes = [...new Set(operations.flatMap(op => (op.simulations || []).map(sim => sim.commune)))];
 
   // Handle simulation selection
   const handleSimulationChange = (operationId: string, simulationId: string) => {
@@ -132,10 +132,11 @@ const Dashboard = () => {
   // Get selected simulation for an operation
   const getSelectedSimulation = (operation: Operation) => {
     const selectedId = selectedSimulations[operation.id];
+    const simulations = operation.simulations || [];
     if (selectedId) {
-      return operation.simulations.find(sim => sim.id === selectedId);
+      return simulations.find(sim => sim.id === selectedId);
     }
-    return operation.simulations[0]; // Default to first simulation
+    return simulations[0]; // Default to first simulation
   };
 
   return (
@@ -309,14 +310,14 @@ const Dashboard = () => {
                                 <TableRow key={operation.id}>
                                   <TableCell>
                                     <Select
-                                      value={selectedSimulations[operation.id] || operation.simulations[0]?.id || ''}
+                                      value={selectedSimulations[operation.id] || (operation.simulations || [])[0]?.id || ''}
                                       onValueChange={(value) => handleSimulationChange(operation.id, value)}
                                     >
                                       <SelectTrigger className="w-48">
                                         <SelectValue placeholder="Sélectionner une simulation" />
                                       </SelectTrigger>
                                       <SelectContent className="z-50 bg-popover border border-border shadow-md">
-                                        {operation.simulations.map((simulation) => (
+                                        {(operation.simulations || []).map((simulation) => (
                                           <SelectItem key={simulation.id} value={simulation.id}>
                                             {simulation.name}
                                           </SelectItem>
