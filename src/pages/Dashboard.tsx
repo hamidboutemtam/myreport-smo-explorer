@@ -263,8 +263,8 @@ const Dashboard = () => {
       return { 
         type: 'Résidence sociale', 
         icon: Users, 
-        color: 'text-blue-600 bg-blue-50',
-        borderColor: 'border-l-4 border-l-blue-500'
+        color: 'text-orange-600 bg-orange-50',
+        borderColor: 'border-l-4 border-l-orange-500'
       };
     }
     
@@ -272,8 +272,8 @@ const Dashboard = () => {
       return { 
         type: 'Réhabilitation', 
         icon: Wrench, 
-        color: 'text-orange-600 bg-orange-50',
-        borderColor: 'border-l-4 border-l-orange-500'
+        color: 'text-green-600 bg-green-50',
+        borderColor: 'border-l-4 border-l-green-500'
       };
     }
     
@@ -282,8 +282,8 @@ const Dashboard = () => {
       return { 
         type: 'Construction neuve', 
         icon: Building, 
-        color: 'text-green-600 bg-green-50',
-        borderColor: 'border-l-4 border-l-green-500'
+        color: 'text-blue-600 bg-blue-50',
+        borderColor: 'border-l-4 border-l-blue-500'
       };
     }
     
@@ -291,8 +291,8 @@ const Dashboard = () => {
     return { 
       type: 'Construction neuve', 
       icon: Building2, 
-      color: 'text-green-600 bg-green-50',
-      borderColor: 'border-l-4 border-l-green-500'
+      color: 'text-blue-600 bg-blue-50',
+      borderColor: 'border-l-4 border-l-blue-500'
     };
   };
 
