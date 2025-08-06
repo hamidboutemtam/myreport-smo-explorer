@@ -101,7 +101,7 @@ export const useOperationData = (operationId: string | undefined) => {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
       // Utiliser l'axe correct pour la typologie
-      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotalCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
       const allData = await fetchAllPages(baseUrl);
       
       console.log('Typology data received:', allData);
@@ -111,7 +111,7 @@ export const useOperationData = (operationId: string | undefined) => {
       // Essayer sans le filtre de simulation si ça échoue
       try {
         console.log('Retrying without simulation filter...');
-        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}'`;
+        const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotalCarac?$filter=Code_Projet eq '${operationId}'`;
         const allData = await fetchAllPages(baseUrl);
         
         // Filtrer côté client
