@@ -100,9 +100,16 @@ export const useOperationData = (operationId: string | undefined) => {
     try {
       console.log('Fetching typology data for simulation:', selectedSimulation);
       
-      // Utiliser l'axe correct pour la typologie
-      const baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotalCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
-      const allData = await fetchAllPages(baseUrl);
+      // Essayer d'abord avec le nouvel endpoint
+      let baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotalCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+      let allData = await fetchAllPages(baseUrl);
+      
+      // Si aucune données, essayer l'ancien endpoint
+      if (!allData || allData.length === 0) {
+        console.log('No data from Carac endpoint, trying original endpoint...');
+        baseUrl = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRTypoLgtPrgDetailLgtTotal?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${selectedSimulation}'`;
+        allData = await fetchAllPages(baseUrl);
+      }
       
       console.log('Typology data received:', allData);
       setTypologyData(allData || []);
