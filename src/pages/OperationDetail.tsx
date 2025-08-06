@@ -118,17 +118,34 @@ const OperationDetail = () => {
     }
   }, [selectedSimulation]);
 
+  // Mapping des codes programme vers nature de financement
+  const getFinancingNature = (codeProgram: string): string => {
+    const mapping: { [key: string]: string } = {
+      'PLAI': 'PLAI (Prêt Locatif Aidé d\'Intégration)',
+      'PLUS': 'PLUS (Prêt Locatif à Usage Social)',
+      'PLS': 'PLS (Prêt Locatif Social)',
+      'PLI': 'PLI (Prêt Locatif Intermédiaire)',
+      'COM': 'Commercialisation',
+      'LLI': 'LLI (Logement Locatif Intermédiaire)',
+      'ACC': 'Accession',
+      'PSLA': 'PSLA (Prêt Social Location-Accession)'
+    };
+    return mapping[codeProgram] || codeProgram;
+  };
+
   // Group data by type and program
   const groupedData = typologyData.reduce((acc, item) => {
     const key = `${item.Type}_${item.Code_Programme}`;
+    const financingNature = getFinancingNature(item.Code_Programme);
     if (!acc[key]) {
       acc[key] = {
         Type: item.Type,
         Programme: item.Code_Programme,
+        NatureFinancement: financingNature,
         byFinancement: {}
       };
     }
-    acc[key].byFinancement[item.Code_Programme] = {
+    acc[key].byFinancement[financingNature] = {
       Nb: item.Nb,
       Su: item.Su,
       Shab: item.Shab
@@ -137,7 +154,7 @@ const OperationDetail = () => {
   }, {} as any);
 
   // Get unique financing types (programmes)
-  const financingTypes = [...new Set(typologyData.map(item => item.Code_Programme))];
+  const financingTypes = [...new Set(typologyData.map(item => getFinancingNature(item.Code_Programme)))];
 
   // Calculate totals
   const calculateTotals = () => {
@@ -151,9 +168,10 @@ const OperationDetail = () => {
     });
 
     typologyData.forEach(item => {
-      totals.byFinancement[item.Code_Programme].Nb += item.Nb;
-      totals.byFinancement[item.Code_Programme].Su += item.Su;
-      totals.byFinancement[item.Code_Programme].Shab += item.Shab;
+      const financingNature = getFinancingNature(item.Code_Programme);
+      totals.byFinancement[financingNature].Nb += item.Nb;
+      totals.byFinancement[financingNature].Su += item.Su;
+      totals.byFinancement[financingNature].Shab += item.Shab;
       totals.total.Nb += item.Nb;
       totals.total.Su += item.Su;
       totals.total.Shab += item.Shab;
