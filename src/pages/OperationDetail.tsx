@@ -28,12 +28,9 @@ interface PrixRevientData {
   Code_Projet: string;
   Code_Simulation: string;
   Code_Programme: string;
-  ChargeFonciereFisc: number;
-  CoutTravauxFisc: number;
-  HonorairesFisc: number;
-  ActuRevisFisc: number;
-  FraisFinancierFisc: number;
-  TotalFisc: number;
+  Hierarchie: number;
+  Libelle: string;
+  MontantFiscalise: number;
 }
 
 interface Simulation {
@@ -142,7 +139,7 @@ const OperationDetail = () => {
     
     try {
       console.log('Fetching prix de revient for:', { operationId, simulationCode });
-      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrg?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}'`;
+      const url = `http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRPrixRevientPrgDetaillesCarac?$filter=Code_Projet eq '${operationId}' and Code_Simulation eq '${simulationCode}' and Hierarchie eq 1`;
       console.log('Prix de revient API URL:', url);
       
       const response = await fetch(url, { headers: getAuthHeader() });
@@ -275,20 +272,14 @@ const OperationDetail = () => {
   const calculatePrixRevientChart = () => {
     if (!prixRevientData || prixRevientData.length === 0) return [];
     
-    // Grouper les montants par chapitre
-    const chapitres = {
-      'Charges foncières': 0,
-      'Bâtiments': 0, 
-      'Honoraires': 0,
-      'Frais annexes': 0
-    };
-
-    prixRevientData.forEach(item => {
-      chapitres['Charges foncières'] += item.ChargeFonciereFisc || 0;
-      chapitres['Bâtiments'] += item.CoutTravauxFisc || 0;
-      chapitres['Honoraires'] += item.HonorairesFisc || 0;
-      chapitres['Frais annexes'] += (item.ActuRevisFisc || 0) + (item.FraisFinancierFisc || 0);
-    });
+    // Grouper les montants par libellé (grands chapitres niveau 1)
+    const chapitres = prixRevientData.reduce((acc, item) => {
+      if (!acc[item.Libelle]) {
+        acc[item.Libelle] = 0;
+      }
+      acc[item.Libelle] += item.MontantFiscalise || 0;
+      return acc;
+    }, {} as { [key: string]: number });
 
     const total = Object.values(chapitres).reduce((a, b) => a + b, 0);
 
@@ -301,33 +292,22 @@ const OperationDetail = () => {
       }));
   };
 
-  const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+  const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   const getPrixRevientTableData = () => {
     if (!prixRevientData || prixRevientData.length === 0) return [];
     
     const programmes = [...new Set(prixRevientData.map(item => getFinancingNature(item.Code_Programme)))];
-    
-    const chapitres = [
-      { nom: 'Charges foncières', key: 'ChargeFonciereFisc' },
-      { nom: 'Bâtiments', key: 'CoutTravauxFisc' },
-      { nom: 'Honoraires', key: 'HonorairesFisc' },
-      { nom: 'Frais annexes', key: 'ActuRevisFisc' }
-    ];
+    const chapitres = [...new Set(prixRevientData.map(item => item.Libelle))];
 
     return chapitres.map(chapitre => {
-      const row: any = { chapitre: chapitre.nom };
+      const row: any = { chapitre };
       programmes.forEach(programme => {
-        const item = prixRevientData.find(d => getFinancingNature(d.Code_Programme) === programme);
-        let montant = 0;
-        if (item) {
-          if (chapitre.key === 'ActuRevisFisc') {
-            // Pour frais annexes, additionner ActuRevisFisc et FraisFinancierFisc
-            montant = (item.ActuRevisFisc || 0) + (item.FraisFinancierFisc || 0);
-          } else {
-            montant = item[chapitre.key as keyof PrixRevientData] as number || 0;
-          }
-        }
+        const items = prixRevientData.filter(d => 
+          d.Libelle === chapitre && 
+          getFinancingNature(d.Code_Programme) === programme
+        );
+        const montant = items.reduce((sum, item) => sum + (item.MontantFiscalise || 0), 0);
         row[programme] = montant;
       });
       
