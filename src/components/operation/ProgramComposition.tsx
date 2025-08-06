@@ -27,7 +27,8 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
           Nb: 0,
           Shab: 0,
           Su: 0,
-          ProdLocLoyerRet: 0
+          ProdLocLoyerRet: 0,
+          SurfAnnexes: 0
         };
       }
       
@@ -35,9 +36,11 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
       acc[financing].Shab += row.Shab;
       acc[financing].Su += row.Su;
       acc[financing].ProdLocLoyerRet += row.ProdLocLoyerRet;
+      // Calculer les annexes comme SU - SHAB
+      acc[financing].SurfAnnexes += (row.Su - row.Shab);
       
       return acc;
-    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number }>);
+    }, {} as Record<string, { Nb: number; Shab: number; Su: number; ProdLocLoyerRet: number; SurfAnnexes: number }>);
   }, [typologyData]);
 
   if (loading) {
@@ -146,7 +149,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                     <TableHead className="text-right font-semibold">Nombre</TableHead>
                     <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
                     <TableHead className="text-right font-semibold">SU (m²)</TableHead>
-                    <TableHead className="text-right font-semibold">Surf. hab. moy. (m²)</TableHead>
+                    <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
                     <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -167,7 +170,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                       <TableCell className="text-right">{data.Shab.toFixed(1)}</TableCell>
                       <TableCell className="text-right">{data.Su.toFixed(1)}</TableCell>
                       <TableCell className="text-right">
-                        {data.Nb > 0 ? (data.Shab / data.Nb).toFixed(1) : '0.0'}
+                        {data.SurfAnnexes.toFixed(1)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {data.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
@@ -194,7 +197,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                   <TableHead className="text-right font-semibold">Nombre</TableHead>
                   <TableHead className="text-right font-semibold">SHAB (m²)</TableHead>
                   <TableHead className="text-right font-semibold">SU (m²)</TableHead>
-                  <TableHead className="text-right font-semibold">Surf. hab. moy. (m²)</TableHead>
+                  <TableHead className="text-right font-semibold">Total annexes (m²)</TableHead>
                   <TableHead className="text-right font-semibold">Prod. loc. (€/an)</TableHead>
                 </TableRow>
               </TableHeader>
@@ -217,7 +220,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                     </TableCell>
                     <TableCell className="text-right">{row.Shab.toFixed(1)}</TableCell>
                     <TableCell className="text-right">{row.Su.toFixed(1)}</TableCell>
-                    <TableCell className="text-right">{row.SurfHabMoy.toFixed(1)}</TableCell>
+                    <TableCell className="text-right">{(row.Su - row.Shab).toFixed(1)}</TableCell>
                     <TableCell className="text-right font-medium">
                       {row.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
                     </TableCell>
@@ -234,7 +237,7 @@ export const ProgramComposition: React.FC<ProgramCompositionProps> = ({
                   <TableCell className="text-right font-bold">{totals.total.Shab.toFixed(1)}</TableCell>
                   <TableCell className="text-right font-bold">{totals.total.Su.toFixed(1)}</TableCell>
                   <TableCell className="text-right font-bold">
-                    {totals.total.Nb > 0 ? (totals.total.Shab / totals.total.Nb).toFixed(1) : '0.0'}
+                    {(totals.total.Su - totals.total.Shab).toFixed(1)}
                   </TableCell>
                   <TableCell className="text-right font-bold text-primary">
                     {totals.total.ProdLocLoyerRet.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
