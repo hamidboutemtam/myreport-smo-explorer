@@ -28,6 +28,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2, Search } from 'lucide-react';
 import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
@@ -43,6 +52,8 @@ const Dashboard = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [selectedSimulations, setSelectedSimulations] = useState<{ [operationId: string]: string }>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   
   const navigate = useNavigate();
 
@@ -112,17 +123,21 @@ const Dashboard = () => {
   const applyFilters = () => {
     fetchOperations();
     setShowFilters(false);
+    resetToFirstPage();
   };
 
   // Reset filters
   const resetFilters = () => {
     setFilters({});
     setShowFilters(false);
+    setSearchTerm('');
+    resetToFirstPage();
   };
 
   // Update filter values
   const handleFilterChange = (key: keyof OperationFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    resetToFirstPage();
   };
 
   // Export operation data
@@ -191,6 +206,34 @@ const Dashboard = () => {
              );
     })
   );
+
+  // Flatten operations for pagination
+  const allFilteredOperations = Object.values(filteredGroupedOperations).flat();
+  const totalOperations = allFilteredOperations.length;
+  const totalPages = Math.ceil(totalOperations / itemsPerPage);
+
+  // Calculate pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOperations = allFilteredOperations.slice(startIndex, endIndex);
+
+  // Group paginated operations back by label
+  const paginatedGroupedOperations: { [key: string]: Operation[] } = paginatedOperations.reduce(
+    (groups, operation) => {
+      const label = operation.libelleoperation;
+      if (!groups[label]) {
+        groups[label] = [];
+      }
+      groups[label].push(operation);
+      return groups;
+    },
+    {} as { [key: string]: Operation[] }
+  );
+
+  // Reset to first page when search or filters change
+  const resetToFirstPage = () => {
+    setCurrentPage(1);
+  };
 
   // Get unique communes and other filter values
   const communes = [...new Set(operations.flatMap(op => (op.simulations || []).map(sim => sim.commune)))];
@@ -291,14 +334,20 @@ const Dashboard = () => {
               <Input
                 placeholder="Rechercher une opération..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  resetToFirstPage();
+                }}
                 className="pl-10 w-64"
               />
               {searchTerm && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => {
+                    setSearchTerm('');
+                    resetToFirstPage();
+                  }}
                   className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
                 >
                   <X className="h-3 w-3" />
@@ -332,7 +381,12 @@ const Dashboard = () => {
             </Button>
             
             <div className="text-sm text-gray-500">
-              {Object.keys(filteredGroupedOperations).length} groupe{Object.keys(filteredGroupedOperations).length !== 1 ? 's' : ''} • {Object.values(filteredGroupedOperations).flat().length} opération{Object.values(filteredGroupedOperations).flat().length !== 1 ? 's' : ''}
+              Page {currentPage} sur {totalPages} • {totalOperations} opération{totalOperations !== 1 ? 's' : ''} au total
+              {totalOperations > itemsPerPage && (
+                <span className="ml-2">
+                  (affichage de {startIndex + 1}-{Math.min(endIndex, totalOperations)})
+                </span>
+              )}
               {searchTerm && (
                 <span className="ml-2 text-blue-600">
                   (recherche: "{searchTerm}")
@@ -417,7 +471,7 @@ const Dashboard = () => {
         <div className="space-y-8">
 
           {/* Display operations progressively */}
-          {Object.keys(filteredGroupedOperations).length === 0 && !loading ? (
+          {Object.keys(paginatedGroupedOperations).length === 0 && !loading ? (
             <Card className="bg-gray-50 border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <p className="text-gray-500 mb-4">
@@ -428,7 +482,10 @@ const Dashboard = () => {
                 </p>
                 <div className="flex gap-2">
                   {searchTerm && (
-                    <Button variant="outline" onClick={() => setSearchTerm('')}>
+                    <Button variant="outline" onClick={() => {
+                      setSearchTerm('');
+                      resetToFirstPage();
+                    }}>
                       Effacer la recherche
                     </Button>
                   )}
@@ -440,7 +497,7 @@ const Dashboard = () => {
             </Card>
           ) : (
             <>
-              {Object.entries(filteredGroupedOperations).map(([label, operations]) => {
+              {Object.entries(paginatedGroupedOperations).map(([label, operations]) => {
                 const operationType = getOperationType(label);
                 return (
                   <Card key={label} className="data-card overflow-hidden">
@@ -539,6 +596,67 @@ const Dashboard = () => {
                   </Card>
                 );
               })}
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      
+                      {/* Page numbers */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        // Show first page, last page, current page, and pages around current
+                        const showPage = page === 1 || 
+                                        page === totalPages || 
+                                        Math.abs(page - currentPage) <= 1;
+                        
+                        if (!showPage && page === 2 && currentPage > 4) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        if (!showPage) return null;
+                        
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </>
           )}
         </div>
