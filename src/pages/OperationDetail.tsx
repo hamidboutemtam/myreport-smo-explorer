@@ -775,7 +775,14 @@ const OperationDetail = () => {
                       <Calculator className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-blue-600 font-medium mb-2">Prix de revient</p>
+                      <div className="flex items-center gap-3 mb-2">
+                        <p className="text-sm text-blue-600 font-medium">Prix de revient</p>
+                        <div className="bg-blue-100 px-2 py-1 rounded text-xs">
+                          <span className="text-blue-800 font-semibold">
+                            Total fiscalisé: {prixRevientTable.reduce((sum, row) => sum + row.total, 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                          </span>
+                        </div>
+                      </div>
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-blue-700">Par logement:</span>
