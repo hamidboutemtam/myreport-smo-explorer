@@ -480,7 +480,6 @@ const OperationDetail = () => {
                         <TableHeader>
                           <TableRow className="bg-blue-100/50">
                             <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
                             {financingTypes.map(financing => (
                               <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
                                 {financing}
@@ -492,11 +491,6 @@ const OperationDetail = () => {
                           {Object.values(groupedData).map((row: any, index) => (
                             <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                               <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
-                              <TableCell className="text-center font-semibold text-blue-600">
-                                {financingTypes.reduce((sum, financing) => 
-                                  sum + (row.byFinancement[financing]?.Nb || 0), 0
-                                )}
-                              </TableCell>
                               {financingTypes.map(financing => (
                                 <TableCell key={financing} className="text-center">
                                   {row.byFinancement[financing]?.Nb || 0}
@@ -506,7 +500,6 @@ const OperationDetail = () => {
                           ))}
                           <TableRow className="bg-blue-100 font-semibold border-t-2 border-blue-200">
                             <TableCell className="text-gray-900">Total</TableCell>
-                            <TableCell className="text-center text-blue-700">{totals.total.Nb}</TableCell>
                             {financingTypes.map(financing => (
                               <TableCell key={financing} className="text-center text-blue-700">
                                 {totals.byFinancement[financing]?.Nb || 0}
@@ -528,26 +521,20 @@ const OperationDetail = () => {
                     </h4>
                     <div className="overflow-x-auto">
                       <Table>
-                        <TableHeader>
-                          <TableRow className="bg-green-100/50">
-                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
-                            {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
-                                {financing}
-                              </TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
-                              <TableCell className="text-center font-semibold text-green-600">
-                                {financingTypes.reduce((sum, financing) => 
-                                  sum + (row.byFinancement[financing]?.Su || 0), 0
-                                ).toFixed(1)}
-                              </TableCell>
+                      <TableHeader>
+                        <TableRow className="bg-green-100/50">
+                          <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                          {financingTypes.map(financing => (
+                            <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                              {financing}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.values(groupedData).map((row: any, index) => (
+                          <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                            <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
                               {financingTypes.map(financing => (
                                 <TableCell key={financing} className="text-center">
                                   {(row.byFinancement[financing]?.Su || 0).toFixed(1)}
@@ -555,15 +542,14 @@ const OperationDetail = () => {
                               ))}
                             </TableRow>
                           ))}
-                          <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200">
-                            <TableCell className="text-gray-900">Surface totale</TableCell>
-                            <TableCell className="text-center text-green-700">{totals.total.Su.toFixed(1)}</TableCell>
-                            {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center text-green-700">
-                                {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+                        <TableRow className="bg-green-100 font-semibold border-t-2 border-green-200">
+                          <TableCell className="text-gray-900">Surface totale</TableCell>
+                          {financingTypes.map(financing => (
+                            <TableCell key={financing} className="text-center text-green-700">
+                              {(totals.byFinancement[financing]?.Su || 0).toFixed(1)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
                         </TableBody>
                       </Table>
                     </div>
@@ -576,26 +562,20 @@ const OperationDetail = () => {
                     </h4>
                     <div className="overflow-x-auto">
                       <Table>
-                        <TableHeader>
-                          <TableRow className="bg-orange-100/50">
-                            <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
-                            {financingTypes.map(financing => (
-                              <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
-                                {financing}
-                              </TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {Object.values(groupedData).map((row: any, index) => (
-                            <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                              <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
-                              <TableCell className="text-center font-semibold text-orange-600">
-                                {financingTypes.reduce((sum, financing) => 
-                                  sum + (row.byFinancement[financing]?.Shab || 0), 0
-                                ).toFixed(1)}
-                              </TableCell>
+                      <TableHeader>
+                        <TableRow className="bg-orange-100/50">
+                          <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                          {financingTypes.map(financing => (
+                            <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
+                              {financing}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.values(groupedData).map((row: any, index) => (
+                          <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                            <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
                               {financingTypes.map(financing => (
                                 <TableCell key={financing} className="text-center">
                                   {(row.byFinancement[financing]?.Shab || 0).toFixed(1)}
@@ -603,15 +583,14 @@ const OperationDetail = () => {
                               ))}
                             </TableRow>
                           ))}
-                          <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200">
-                            <TableCell className="text-gray-900">Surface totale</TableCell>
-                            <TableCell className="text-center text-orange-700">{totals.total.Shab.toFixed(1)}</TableCell>
-                            {financingTypes.map(financing => (
-                              <TableCell key={financing} className="text-center text-orange-700">
-                                {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+                        <TableRow className="bg-orange-100 font-semibold border-t-2 border-orange-200">
+                          <TableCell className="text-gray-900">Surface totale</TableCell>
+                          {financingTypes.map(financing => (
+                            <TableCell key={financing} className="text-center text-orange-700">
+                              {(totals.byFinancement[financing]?.Shab || 0).toFixed(1)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
                         </TableBody>
                       </Table>
                     </div>
@@ -629,7 +608,6 @@ const OperationDetail = () => {
                         <TableHeader>
                           <TableRow className="bg-purple-100/50">
                             <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                            <TableHead className="font-semibold text-center text-gray-700">Total</TableHead>
                             {financingTypes.map(financing => (
                               <TableHead key={financing} className="font-semibold text-center text-gray-700 min-w-[120px]">
                                 {financing}
@@ -651,9 +629,6 @@ const OperationDetail = () => {
                             return (
                               <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                                 <TableCell className="font-medium text-gray-900">{row.Type}</TableCell>
-                                <TableCell className="text-center font-semibold text-purple-600">
-                                  {moyenneLoyer.toFixed(0)} €
-                                </TableCell>
                                 {financingTypes.map(financing => {
                                   const nb = row.byFinancement[financing]?.Nb || 0;
                                   const loyer = row.byFinancement[financing]?.LoyerMensuel || 0;
@@ -670,9 +645,6 @@ const OperationDetail = () => {
                           })}
                           <TableRow className="bg-purple-100 font-semibold border-t-2 border-purple-200">
                             <TableCell className="text-gray-900">Loyer moyen par financement</TableCell>
-                            <TableCell className="text-center text-purple-700">
-                              {totals.total.Nb > 0 ? `${(totals.total.LoyerMensuel / totals.total.Nb).toFixed(0)} €` : '-'}
-                            </TableCell>
                             {financingTypes.map(financing => {
                               const nb = totals.byFinancement[financing]?.Nb || 0;
                               const loyer = totals.byFinancement[financing]?.LoyerMensuel || 0;
