@@ -6,8 +6,14 @@ let operationsCache: Operation[] | null = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// External API URL
-const API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
+// External API URL - configurable
+let API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
+
+// Function to set the API base URL
+export const setApiBaseUrl = (baseUrl: string) => {
+  API_BASE_URL = `${baseUrl}/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp`;
+  console.log('🔧 API Base URL updated to:', API_BASE_URL);
+};
 
 // Helper function to get basic auth header
 const getAuthHeader = () => {

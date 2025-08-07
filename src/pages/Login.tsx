@@ -42,7 +42,17 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      await login(username, password);
+      // Get selected environment URL
+      const selectedEnv = ENVIRONMENTS[environment as keyof typeof ENVIRONMENTS];
+      
+      // Store environment info in localStorage for persistence
+      localStorage.setItem('smo_environment', JSON.stringify({
+        key: environment,
+        name: selectedEnv.name,
+        url: selectedEnv.url
+      }));
+      
+      await login(username, password, selectedEnv.url);
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
