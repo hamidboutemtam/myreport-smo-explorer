@@ -81,8 +81,6 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
   // Ne prendre que les éléments de hiérarchie 1 (totaux consolidés)
   const topLevelItems = financementData.filter(item => item.Hierarchie === 1);
   
-  console.log('Données de financement hiérarchie 1:', topLevelItems);
-  
   const groupedData = topLevelItems.reduce((acc, item) => {
     const programme = item.Code_Programme;
     if (!acc[programme]) {
@@ -94,36 +92,21 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
       };
     }
     
-    console.log(`Programme: ${programme}, Code: ${item.Code}, Libelle: ${item.Libelle}, Valeur: ${item.Valeur_HT}`);
-    
-    // Classification plus large et inclusive
-    const code = item.Code.toUpperCase();
-    const libelle = item.Libelle.toLowerCase();
-    
-    if (code.includes('FONDS') || code.includes('APPORT') || code.includes('PROPRE') || 
-        libelle.includes('fonds propre') || libelle.includes('apport') || 
-        item.TypeSubvention === '' && item.TypeEmprunt === '') {
-      acc[programme].fondsPropres += item.Valeur_HT;
-      console.log(`  -> Classé comme fonds propres: ${item.Valeur_HT}`);
-    } else if (code.includes('SUBV') || libelle.includes('subvention') || 
-               item.TypeSubvention !== '' && item.TypeSubvention !== null) {
+    // Garder la classification originale pour subventions et prêts
+    // Améliorer seulement la classification des fonds propres
+    if (item.Code.includes('SUBV') || item.Libelle.toLowerCase().includes('subvention')) {
       acc[programme].subventions += item.Valeur_HT;
-      console.log(`  -> Classé comme subvention: ${item.Valeur_HT}`);
-    } else if (code.includes('PRET') || code.includes('EMPRUNT') || libelle.includes('prêt') || 
-               libelle.includes('emprunt') || item.TypeEmprunt !== '' && item.TypeEmprunt !== null) {
+    } else if (item.Code.includes('PRET') || item.Libelle.toLowerCase().includes('prêt')) {
       acc[programme].prets += item.Valeur_HT;
-      console.log(`  -> Classé comme prêt: ${item.Valeur_HT}`);
     } else {
-      // Si aucune classification claire, considérer comme fonds propres par défaut
+      // Tout le reste est considéré comme fonds propres
+      // Cela inclut les montants qui n'étaient pas classifiés avant
       acc[programme].fondsPropres += item.Valeur_HT;
-      console.log(`  -> Classé comme fonds propres (défaut): ${item.Valeur_HT}`);
     }
     
     acc[programme].total += item.Valeur_HT;
     return acc;
   }, {} as Record<string, { fondsPropres: number; subventions: number; prets: number; total: number }>);
-  
-  console.log('Données groupées:', groupedData);
 
   // Convertir en tableau pour l'affichage
   const financementTable: FinancementTableRow[] = Object.entries(groupedData).map(([programme, data]) => ({
