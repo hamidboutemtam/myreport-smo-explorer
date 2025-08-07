@@ -7,7 +7,7 @@ let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // External API URL
-const API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
+const API_BASE_URL = 'http://pos0726:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
 
 // Helper function to get basic auth header
 const getAuthHeader = () => {
