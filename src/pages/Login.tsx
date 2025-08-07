@@ -5,27 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate, Navigate } from 'react-router-dom';
 
-// Environment mapping
-const ENVIRONMENTS = {
-  'local': {
-    name: 'Environnement local',
-    url: 'http://localhost:8000'
-  },
-  'esplogement': {
-    name: 'EspLogement',
-    url: 'https://spo.espaceserenity.com/ddbc9e3e-b9c7-4ad0-a3ee-43e705c49d37'
-  },
-  'commerce': {
-    name: 'Environnement Commerce',
-    url: 'https://spo.espaceserenity.com/ddbc9e3e-b9c7-4ad0-a3ee-43e705c49d37'
-  }
-};
-
 const Login = () => {
-  const [environment, setEnvironment] = useState('local');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,17 +24,7 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      // Get selected environment URL
-      const selectedEnv = ENVIRONMENTS[environment as keyof typeof ENVIRONMENTS];
-      
-      // Store environment info in localStorage for persistence
-      localStorage.setItem('smo_environment', JSON.stringify({
-        key: environment,
-        name: selectedEnv.name,
-        url: selectedEnv.url
-      }));
-      
-      await login(username, password, selectedEnv.url);
+      await login(username, password);
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
@@ -78,21 +50,6 @@ const Login = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="environment">Environnement</Label>
-                <Select value={environment} onValueChange={setEnvironment}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez un environnement" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(ENVIRONMENTS).map(([key, env]) => (
-                      <SelectItem key={key} value={key}>
-                        {env.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="username">Identifiant</Label>
                 <Input

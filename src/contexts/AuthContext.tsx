@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
-import { setApiBaseUrl } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -9,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, apiBaseUrl?: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -31,35 +30,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check if there's a stored user session on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('smo_user');
-    const storedEnvironment = localStorage.getItem('smo_environment');
-    
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-        
-        // Restore API base URL if environment is stored
-        if (storedEnvironment) {
-          const envData = JSON.parse(storedEnvironment);
-          setApiBaseUrl(envData.url);
-        }
       } catch (e) {
         console.error('Failed to parse stored user:', e);
         localStorage.removeItem('smo_user');
-        localStorage.removeItem('smo_environment');
       }
     }
     setIsLoading(false);
   }, []);
 
   // In a real application, this would call your authentication API
-  const login = async (username: string, password: string, apiBaseUrl?: string) => {
+  const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      // Set API base URL if provided
-      if (apiBaseUrl) {
-        setApiBaseUrl(apiBaseUrl);
-      }
-      
       // Mock API call - replace with actual API call in production
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -90,7 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('smo_user');
-    localStorage.removeItem('smo_environment');
     toast.info('Vous avez été déconnecté');
     navigate('/login');
   };
