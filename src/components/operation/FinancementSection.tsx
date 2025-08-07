@@ -222,7 +222,7 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
               </div>
             </div>
 
-            {/* Fonds propres par logement */}
+            {/* Fonds propres par m² SHAB */}
             <div 
               className={`bg-green-50 rounded-lg p-4 border border-green-200 cursor-pointer transition-all hover:shadow-md ${
                 selectedRatio === 'logement' ? 'ring-2 ring-green-500 bg-green-100' : ''
@@ -234,12 +234,12 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
                   <Calculator className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Fonds propres par logement</p>
+                  <p className="text-sm text-green-600 font-medium">Fonds propres par m² SHAB</p>
                   <p className="text-2xl font-bold text-green-900">
-                    {totals.total.Nb > 0 ? 
-                      (financementTable.reduce((sum, row) => sum + row.fondsPropres, 0) / totals.total.Nb).toLocaleString('fr-FR', { 
+                    {totals.total.Shab > 0 ? 
+                      (financementTable.reduce((sum, row) => sum + row.fondsPropres, 0) / totals.total.Shab).toLocaleString('fr-FR', { 
                         maximumFractionDigits: 0 
-                      }) : '0'} €
+                      }) : '0'} €/m²
                   </p>
                   <p className="text-xs text-green-600 mt-1">Par chapitre - Cliquez pour voir le détail</p>
                 </div>
