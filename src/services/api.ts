@@ -13,6 +13,16 @@ let API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON
 export const setApiBaseUrl = (baseUrl: string) => {
   API_BASE_URL = `${baseUrl}/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp`;
   console.log('🔧 API Base URL updated to:', API_BASE_URL);
+  
+  // Clear cache when URL changes
+  invalidateCache();
+};
+
+// Function to invalidate cache
+export const invalidateCache = () => {
+  operationsCache = null;
+  cacheTimestamp = null;
+  console.log('🗑️ Cache invalidated');
 };
 
 // Helper function to get basic auth header
@@ -137,10 +147,11 @@ const fetchAllPages = async (
       onProgressUpdate(allData, isComplete);
     }
     
-    // Check for next page
+// Check for next page
     if (apiResponse['@odata.nextLink']) {
       // Handle relative URLs - extract base URL and construct properly
-      const baseUrl = new URL(API_BASE_URL).origin; // http://localhost:8000
+      const currentApiBase = new URL(API_BASE_URL);
+      const baseUrl = `${currentApiBase.protocol}//${currentApiBase.host}`; 
       const nextLink = apiResponse['@odata.nextLink'];
       currentUrl = nextLink.startsWith('http') 
         ? nextLink
@@ -195,6 +206,7 @@ export const getOperations = async (filters?: OperationFilters, forceRefresh: bo
   
   // Fetch fresh data
   console.log('🔍 Starting fresh API call to:', API_BASE_URL);
+  console.log('🌐 Current API Base URL:', API_BASE_URL);
   
   try {
     console.log('📡 Fetching all paginated data...');

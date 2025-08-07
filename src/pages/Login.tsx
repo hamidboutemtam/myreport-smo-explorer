@@ -16,11 +16,11 @@ const ENVIRONMENTS = {
   },
   'esplogement': {
     name: 'EspLogement',
-    url: 'https://SPO.espaceserenity.com/590e7c46-6f36-40f3-90f9-a60aa79f3012'
+    url: 'https://spo.espaceserenity.com/ddbc9e3e-b9c7-4ad0-a3ee-43e705c49d37'
   },
   'commerce': {
     name: 'Environnement Commerce',
-    url: 'https://spo.espaceserenity.com/ddbc9e3e-b9c7-4ad0-a3ee-43e705c49d37/'
+    url: 'https://spo.espaceserenity.com/ddbc9e3e-b9c7-4ad0-a3ee-43e705c49d37'
   }
 };
 

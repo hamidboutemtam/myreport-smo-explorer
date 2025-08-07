@@ -38,7 +38,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Filter, X, FileJson, FileSpreadsheet, RefreshCw, Building, Users, Wrench, Building2, Search, MapPin, Calendar, User, Hash, BarChart3 } from 'lucide-react';
-import { getOperations, getOperationsProgressive, exportOperation, downloadFile } from '@/services/api';
+import { getOperations, getOperationsProgressive, exportOperation, downloadFile, invalidateCache } from '@/services/api';
 import { Operation, OperationFilters } from '@/types';
 import Layout from '@/components/Layout';
 
@@ -60,8 +60,17 @@ const Dashboard = () => {
   // Available years for the filter
   const years = [2021, 2022, 2023, 2024, 2025];
 
-  // Fetch operations on initial load
+  // Check for environment changes and force refresh
   useEffect(() => {
+    const storedEnvironment = localStorage.getItem('smo_environment');
+    if (storedEnvironment) {
+      const envData = JSON.parse(storedEnvironment);
+      console.log('🌐 Dashboard loaded with environment:', envData.name);
+      console.log('🔗 API URL:', envData.url);
+      
+      // Force cache invalidation and data refresh on environment change
+      invalidateCache();
+    }
     fetchOperationsProgressive();
   }, []);
 
