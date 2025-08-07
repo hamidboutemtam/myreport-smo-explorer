@@ -78,10 +78,10 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
   }
 
   // Regrouper les données par programme et par type de financement
-  // Ne prendre que les éléments de niveau détaillé (hiérarchie 3 et 4) pour éviter les doublons
-  const detailedItems = financementData.filter(item => item.Hierarchie >= 3);
+  // Ne prendre que les éléments de hiérarchie 1 (totaux consolidés)
+  const topLevelItems = financementData.filter(item => item.Hierarchie === 1);
   
-  const groupedData = detailedItems.reduce((acc, item) => {
+  const groupedData = topLevelItems.reduce((acc, item) => {
     const programme = item.Code_Programme;
     if (!acc[programme]) {
       acc[programme] = {
