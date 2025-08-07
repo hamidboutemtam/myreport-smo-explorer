@@ -92,16 +92,14 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
       };
     }
     
-    // Garder la classification originale pour subventions et prêts
-    // Améliorer seulement la classification des fonds propres
-    if (item.Code.includes('SUBV') || item.Libelle.toLowerCase().includes('subvention')) {
+    // Classification selon les codes spécifiques de l'API
+    if (item.Code === 'BF_C_FP') {
+      // Fonds propres spécifiquement identifiés par le code BF_C_FP
+      acc[programme].fondsPropres += item.Valeur_HT;
+    } else if (item.Code.includes('SUBV') || item.Libelle.toLowerCase().includes('subvention')) {
       acc[programme].subventions += item.Valeur_HT;
     } else if (item.Code.includes('PRET') || item.Libelle.toLowerCase().includes('prêt')) {
       acc[programme].prets += item.Valeur_HT;
-    } else {
-      // Tout le reste est considéré comme fonds propres
-      // Cela inclut les montants qui n'étaient pas classifiés avant
-      acc[programme].fondsPropres += item.Valeur_HT;
     }
     
     acc[programme].total += item.Valeur_HT;
