@@ -102,9 +102,15 @@ export const FinancementSection: React.FC<FinancementSectionProps> = ({
       acc[programme].prets += item.Valeur_HT;
     }
     
-    acc[programme].total += item.Valeur_HT;
     return acc;
   }, {} as Record<string, { fondsPropres: number; subventions: number; prets: number; total: number }>);
+
+  // Calculer le total pour chaque programme comme la somme des trois types de financement
+  Object.keys(groupedData).forEach(programme => {
+    groupedData[programme].total = groupedData[programme].fondsPropres + 
+                                   groupedData[programme].subventions + 
+                                   groupedData[programme].prets;
+  });
 
   // Convertir en tableau pour l'affichage
   const financementTable: FinancementTableRow[] = Object.entries(groupedData).map(([programme, data]) => ({
