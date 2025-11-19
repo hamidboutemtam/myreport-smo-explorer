@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       // Mock API call - replace with actual API call in production
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // For demo purposes only - simulate authentication
       if (username && password) {
@@ -75,6 +75,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('smo_user');
+    localStorage.removeItem('smo_api_url');
+    localStorage.removeItem('smo_environment');
     toast.info('Vous avez été déconnecté');
     navigate('/login');
   };
