@@ -6,8 +6,33 @@ let operationsCache: Operation[] | null = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// External API URL
-const API_BASE_URL = 'http://localhost:8000/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp';
+// Function to invalidate cache
+export const invalidateCache = () => {
+  console.log('🗑️ Invalidating cache');
+  operationsCache = null;
+  cacheTimestamp = null;
+};
+
+// External API URL - configurable
+let API_BASE_URL = 'http://localhost:8000';
+
+// Function to set API base URL
+export const setApiBaseUrl = (url: string) => {
+  console.log('🔧 Setting API base URL to:', url);
+  API_BASE_URL = url;
+  // Invalidate cache when URL changes
+  invalidateCache();
+};
+
+// Function to get current API base URL
+export const getApiBaseUrl = () => API_BASE_URL;
+
+// Initialize API base URL from localStorage
+const storedApiUrl = localStorage.getItem('smo_api_url');
+if (storedApiUrl) {
+  API_BASE_URL = storedApiUrl;
+  console.log('🔄 Loaded API URL from storage:', API_BASE_URL);
+}
 
 // Helper function to get basic auth header
 const getAuthHeader = () => {
@@ -133,12 +158,18 @@ const fetchAllPages = async (
     
     // Check for next page
     if (apiResponse['@odata.nextLink']) {
-      // Handle relative URLs - extract base URL and construct properly
-      const baseUrl = new URL(API_BASE_URL).origin; // http://localhost:8000
       const nextLink = apiResponse['@odata.nextLink'];
-      currentUrl = nextLink.startsWith('http') 
-        ? nextLink
-        : `${baseUrl}${nextLink}`;
+      // If next link is relative, prepend the base URL
+      if (nextLink.startsWith('/')) {
+        const baseUrl = new URL(url).origin;
+        currentUrl = `${baseUrl}${nextLink}`;
+      } else if (nextLink.startsWith('http')) {
+        currentUrl = nextLink;
+      } else {
+        // Relative path without leading slash
+        const baseUrl = url.substring(0, url.lastIndexOf('/'));
+        currentUrl = `${baseUrl}/${nextLink}`;
+      }
       pageCount++;
     } else {
       currentUrl = null;
@@ -241,11 +272,15 @@ export const getOperationsProgressive = async (
   onProgressUpdate?: (operations: Operation[], isComplete: boolean, loadedCount: number, totalEstimate?: number) => void
 ): Promise<Operation[]> => {
   console.log('🔍 Getting operations progressively with filters:', filters);
+  console.log('🌐 Current API Base URL:', API_BASE_URL);
   
   try {
     console.log('📡 Starting progressive data fetch...');
     
-    const allApiData = await fetchAllPages(API_BASE_URL, (apiData, isComplete) => {
+    const fullUrl = `${API_BASE_URL}/AccessionRV/api/reporting/axes/AXE_MON_SRCaracOp`;
+    console.log('📍 Full API URL:', fullUrl);
+    
+    const allApiData = await fetchAllPages(fullUrl, (apiData, isComplete) => {
       // Transform current data
       const currentOperations = transformApiData(apiData);
       
