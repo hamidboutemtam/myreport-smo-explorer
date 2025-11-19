@@ -13,13 +13,11 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '1.5rem',
+			padding: '24px',
 			screens: {
 				'sm': '640px',
 				'md': '960px',
 				'lg': '1280px',
-				'xl': '1280px',
-				'2xl': '1280px'
 			}
 		},
 		extend: {
@@ -113,15 +111,15 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: 'var(--radius-lg)',
-				md: 'var(--radius-md)',
 				sm: 'var(--radius-sm)',
-				xl: '1rem',
+				md: 'var(--radius-md)',
+				lg: 'var(--radius-lg)',
+				pill: 'var(--radius-pill)',
 			},
 			boxShadow: {
-				'elevation-sm': 'var(--elevation-sm)',
-				'elevation-md': 'var(--elevation-md)',
-				'elevation-lg': 'var(--elevation-lg)',
+				sm: 'var(--elevation-sm)',
+				md: 'var(--elevation-md)',
+				lg: 'var(--elevation-lg)',
 			},
 			transitionDuration: {
 				'fast': '120ms',
