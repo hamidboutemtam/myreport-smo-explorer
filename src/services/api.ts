@@ -14,7 +14,7 @@ export const invalidateCache = () => {
 };
 
 // External API URL - configurable
-let API_BASE_URL = 'http://localhost:8000';
+let API_BASE_URL = 'http://localhost:8080';
 
 // Function to set API base URL
 export const setApiBaseUrl = (url: string) => {
