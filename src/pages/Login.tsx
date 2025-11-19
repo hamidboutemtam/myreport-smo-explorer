@@ -12,7 +12,7 @@ import { setApiBaseUrl } from '@/services/api';
 const ENVIRONMENTS = {
   localhost: {
     name: 'Localhost',
-    url: 'http://localhost:8000'
+    url: 'http://localhost:8080'
   },
   espLogement: {
     name: 'EspLogement',
